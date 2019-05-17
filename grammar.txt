@@ -1,0 +1,139 @@
+
+⚠︎⚠︎PUEDE SER QUE HAYA LITERALS Q EN VD SON TOKENS⚠⚠︎
+
+Gramática:
+
+┌────────────────────────────────────────────────┐
+│                    Inicio                      │
+└────────────────────────────────────────────────┘
+
+entrada   ➞ sentencia ";" entrada 
+          ↳ ε
+
+sentencia ➞ definicion 
+          ↳ asignacion 
+          ↳ funcion  (las void)
+          ↳ funcionIf 
+          ↳ bucleWhile 
+          ↳ devolver 
+
+
+
+┌────────────────────────────────────────────────┐
+│                  Definicion                    │
+└────────────────────────────────────────────────┘
+
+definicion ➞ tipo lista 
+
+tipo   ➞ INT 
+
+lista  ➞ elto resto 
+
+elto   ➞ ID 
+       ↳ ID "=" operacion 
+
+ressto ➞ "," elto resto 
+       ↳ ε
+
+
+
+┌────────────────────────────────────────────────┐
+│                  Asignacion                    │
+└────────────────────────────────────────────────┘
+
+asignacion ➞ ID "=" operacion
+           ↳ ID "+=" operacion
+           ↳ ID "-=" operacion
+           ↳ ID "*=" operacion 
+           ↳ ID "/=" operacion
+           ↳ ID "%=" operacion
+
+
+
+┌────────────────────────────────────────────────┐
+│    Ops aritméticas, relacionales y lógicas     │ 
+└────────────────────────────────────────────────┘
+
+operacion ➞ operacion "||" bopand
+          ↳ bopand
+    
+bopand    ➞ bopand "&&" bopeq
+          ↳ bopeq
+
+bopeq     ➞ bopeq "==" bopcomp
+          ↳ bopeq "!=" bopcomp
+          ↳ bopcomp
+
+bopcomp   ➞ bopcomp "<" exprar
+          ↳ bopcomp ">" exprar
+          ↳ bopcomp "<=" exprar
+          ↳ bopcomp ">=" exprar
+          ↳ exprar
+
+exprar    ➞ exprar "+" exprprod
+          ↳ exprar "-" exprprod
+          ↳ exprprod
+
+exprprod  ➞ exprprod "*" uar
+          ↳ exprprod "/" uar
+          ↳ exprprod "%" uar
+          ↳ uar
+
+uar       ➞ "-" brack
+          ↳ "+" brack
+          ↳ "!" brack
+          ↳ brack
+
+brack     ➞ "(" operacion ")"
+          ↳ NUM
+          ↳ ID
+
+
+
+┌────────────────────────────────────────────────┐
+│                   Funciones                    │
+└────────────────────────────────────────────────┘
+
+functiondef ➞ tipo ID "(" tiposInp ")" "{" entrada "}"        aqui hay q tener en cuenra el devolver
+            
+tiposInp    ➞ tipo ID tiposInpRe 
+            ↳ ε
+
+devolver    ➞ RETURN operacion 
+
+tiposInpRe  ➞ "," tipo ID tiposInpRe
+            ↳ ε
+
+funcioncall ➞ ID "(" paramlist ")"
+            ↳ PRINTF "(" STR restoF ")"
+            ↳ SCANF "(" STR restoS ")"
+
+paramlist   ➞ elm restoF
+            ↳ ε
+
+elm         ➞ ID
+            ↳ NUM
+            ↳ operacion
+
+restoF      ➞ "," elm restoF
+            ↳ ε
+
+restoS      ➞ "," "&" ID restoS
+            ↳ "," "&" ID
+
+
+
+┌────────────────────────────────────────────────┐
+│                  IF y WHILE                    │
+└────────────────────────────────────────────────┘
+
+funcionIf  ➞ IF "(" operacion ")" "{" entrada "}"
+           ↳ IF "(" operacion ")" "{" entrada "}" ELSE "{" entrada "}" 
+           ↳ IF "(" operacion ")" "{" entrada "}" ELSE sentencia
+           ↳ IF "(" operacion ")" sentencia
+           ↳ IF "(" operacion ")" sentencia ELSE "{" entrada "}" 
+           ↳ IF "(" operacion ")" sentencia ELSE sentencia
+
+bucleWhile ➞ WHILE "(" operacion ")" "{" entrada "}"
+           ↳ WHILE "(" operacion ")" sentencia
+
