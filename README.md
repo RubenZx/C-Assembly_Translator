@@ -1,8 +1,10 @@
 # C-Assembly_Translator
 ## Grammar
 
-**entrada** ➞ sentencia ";" entrada 
-            ↳ ε
+**entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia ";" entrada 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↳ ε
+
 
 **sentencia** ➞ definicion 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ asignacion 
