@@ -1,5 +1,5 @@
 # C-Assembly_Translator
-&nbsp;&nbsp;&nbsp;&nbsp;Final work of the subject *Language Processors*, we are going to make a traductor to transform code in C to assembly in Python3 using [sly](https://sly.readthedocs.io/en/latest/).  
+&nbsp;&nbsp;&nbsp;&nbsp;Final work of the subject *Language Processors*. We are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/).  
 
 ## Grammar
 
