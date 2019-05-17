@@ -1,4 +1,6 @@
 # C-Assembly_Translator
+Final work of the subject *Language Procsessors*, we are going to make a traductor to transform code in C to assembly in Python3. 
+
 ## Grammar
 
 **entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia ";" entrada 
