@@ -2,6 +2,7 @@
 ## Grammar
 
 **entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia ";" entrada 
+
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↳ ε
 
 **sentencia** ➞ definicion 
