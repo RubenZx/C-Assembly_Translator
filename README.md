@@ -1,5 +1,5 @@
 # C-Assembly_Translator
-##### Grammar
+## Grammar
 
 **entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia ";" entrada 
 
@@ -18,7 +18,7 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ devolver 
 
----
+*****
 
 **definicion** ➞ tipo lista 
 
