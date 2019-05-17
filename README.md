@@ -1,2 +1,2 @@
 # C-Assembly_Translator
-## Grammar:
+## Grammar
