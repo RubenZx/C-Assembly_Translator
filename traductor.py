@@ -29,10 +29,15 @@ class NodoNum(Nodo):
     def __init__(self, valor):
         self.v = valor
     def escribir(self):
-        print( "movl $(",self.v,"), %eax")        
+        f_salida.write("movl $(",self.v,"), %eax")        
 
 
-
+#class NodoID(Nodo):
+#    v = None
+#    def __init__(self, valor):
+#        self.v = valor
+#    def escribir(self):
+#        f_salida.write("movl "tablaValor)
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Parser                      
