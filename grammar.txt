@@ -12,7 +12,7 @@ entrada   ➞ sentencia ";" entrada
 
 sentencia ➞ definicion 
           ↳ asignacion 
-          ↳ funcion  (las void)
+          ↳ operacion
           ↳ funcionIf 
           ↳ bucleWhile 
           ↳ devolver 
@@ -32,7 +32,7 @@ lista  ➞ elto resto
 elto   ➞ ID 
        ↳ ID "=" operacion 
 
-ressto ➞ "," elto resto 
+resto ➞ "," elto resto 
        ↳ ε
 
 
@@ -87,6 +87,7 @@ uar       ➞ "-" brack
 brack     ➞ "(" operacion ")"
           ↳ NUM
           ↳ ID
+          ↳ funcioncall
 
 
 
@@ -94,7 +95,7 @@ brack     ➞ "(" operacion ")"
 │                   Funciones                    │
 └────────────────────────────────────────────────┘
 
-functiondef ➞ tipo ID "(" tiposInp ")" "{" entrada "}"        aqui hay q tener en cuenra el devolver
+functiondef ➞ tipo ID "(" tiposInp ")" "{" entrada devolver "}"     
             
 tiposInp    ➞ tipo ID tiposInpRe 
             ↳ ε
@@ -104,9 +105,11 @@ devolver    ➞ RETURN operacion
 tiposInpRe  ➞ "," tipo ID tiposInpRe
             ↳ ε
 
+
+
 funcioncall ➞ ID "(" paramlist ")"
             ↳ PRINTF "(" STR restoF ")"
-            ↳ SCANF "(" STR restoS ")"
+            ↳ SCANF "(" STR "," "&" ID restoScan ")"
 
 paramlist   ➞ elm restoF
             ↳ ε
@@ -117,9 +120,9 @@ elm         ➞ ID
 
 restoF      ➞ "," elm restoF
             ↳ ε
-
-restoS      ➞ "," "&" ID restoS
-            ↳ "," "&" ID
+            
+restoScan   ➞ "," "&" ID restoScan
+            ↳ ε
 
 
 

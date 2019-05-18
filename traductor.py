@@ -1,103 +1,12 @@
 from sly import Lexer, Parser
-
-
-class ClassLexer(Lexer):
-
-    # Tokenlist
-    tokens = {
-        ID,
-        OR,
-        AND,
-        INT,
-        NUM,
-        IF,
-        ELSE,
-        WHILE,
-        PRINTF,
-        SCANF,
-        EQ,
-        NEQ,
-        GTEQ,
-        LTEQ,
-		MASEQ,
-		MENOSEQ,
-		POREQ,
-		DIVEQ,
-		MODEQ,
-        PP,
-        MM,
-        STR,
-    }
-
-    # Ignores and literals
-    ignore = " \t"
-    ignore_comment = r"\/\/.*"
-    # ignore_newline = r'\n+'
-    literals = {
-        "*",
-        "+",
-        "-",
-        "/",
-        ",",
-        ";",
-        "[",
-        "]",
-        "(",
-        ")",
-        "!",
-        "=",
-        ">",
-        "<",
-        "%",
-        "\""
-    }
-
-    OR = r"\|\|"
-    AND = r"&&"
-    EQ = r"=="
-    NEQ = r"!="
-    GTEQ = r">="
-    LTEQ = r"<="
-    MASEQ = r"\+="
-    MENOSEQ = r"-="
-    POREQ = r"\*="
-    DIVEQ = r"/="
-    MODEQ = r"%="
-    # PP = r"\+\+"
-    # MM = r'--'
-
-
-    NUM = r"[0-9]+"
-    ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
-    STR = r"\"[.]+\""
-
-    ID["int"] = INT
-
-    # Special cases
-    ID["if"] = IF
-    ID["return"] = IF
-    ID["else"] = ELSE
-    ID["while"] = WHILE
-    ID["printf"] = PRINTF
-    ID["scanf"] = SCANF
-
-    @_(r"[0-9]+")
-    def NUM(self, t):
-        t.value = int(t.value)
-        return t
-
-    @_(r"\n+")
-    def ignore_newline(self, t):
-        self.lineno += len(t.value)
-
-    def error(self, t):
-        print("illegal character: ", t.value[0])
-        self.index += 1
-
-
-# LEXER END
+from lexico import ClassLexer
 
 global tablaAsig, tablaValor
+
+
+#   ┌────────────────────────────────────────────────┐
+#                       Nodos                      
+#  └────────────────────────────────────────────────┘
 
 class Nodo:
     def escribir(self):
@@ -108,6 +17,11 @@ class NodoInt(Nodo):
     def escribir(self):
         return "int"
 
+
+
+#   ┌────────────────────────────────────────────────┐
+#                       Parser                      
+#  └────────────────────────────────────────────────┘
 
 
 class ClassParser(Parser):
@@ -363,9 +277,6 @@ class ClassParser(Parser):
     # def elm(self, t):
     #     pass
 
-    # @_('declaracion')   ESTO PQ PQ?? PQQQQQ??? PQPQPQPQPQPQPQxaljsdjqsBDLÑKma
-    # def elm(self, t):
-    #     pass
 
     # @_('"," elm restoF')
     # def restoF(self, t):
@@ -386,7 +297,13 @@ class ClassParser(Parser):
 
     #---------------------------------------------------------------------------
     
-# PARSER END
+
+
+#   ┌────────────────────────────────────────────────┐
+#                       Main                      
+#  └────────────────────────────────────────────────┘
+
+
 
 if __name__ == "__main__":
     global tablaAsig, tablaValor
