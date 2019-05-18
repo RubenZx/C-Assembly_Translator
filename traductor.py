@@ -4,9 +4,9 @@ from lexico import ClassLexer
 global tablaAsig, tablaValor
 
 
-#   ┌────────────────────────────────────────────────┐
-#                       Nodos                      
-#  └────────────────────────────────────────────────┘
+#   ┌──────────────────────────────────────────────────────────────────────────┐
+#                                     Nodos                      
+#  └──────────────────────────────────────────────────────────────────────────┘
 
 class Nodo:
     def escribir(self):
@@ -18,10 +18,25 @@ class NodoInt(Nodo):
         return "int"
 
 
+class NodoFuncion(Nodo):
+    def escribirPrologo(self, ID, args):
+        global f_salida
+        f_salida.write(".text\n.globl ", ID, "\n.type ", ID, ", @function\n", ID, ":\n\tpushl %ebp\n\tmovl %esp, %ebp\n\tsubl ")
 
-#   ┌────────────────────────────────────────────────┐
-#                       Parser                      
-#  └────────────────────────────────────────────────┘
+
+class NodoNum(Nodo):
+    v = None
+    def __init__(self, valor):
+        self.v = valor
+    def escribir(self):
+        print( "movl $(",self.v,"), %eax")        
+
+
+
+
+#   ┌──────────────────────────────────────────────────────────────────────────┐
+#                                     Parser                      
+#  └──────────────────────────────────────────────────────────────────────────┘
 
 
 class ClassParser(Parser):
@@ -159,6 +174,7 @@ class ClassParser(Parser):
 
     @_('exprprod "*" uar')
     def exprprod(self, t):
+        nodo = nodoProd()
         return t.exprprod * t.uar
     
     @_('exprprod "/" uar')
@@ -196,7 +212,8 @@ class ClassParser(Parser):
     
     @_('NUM')
     def brack(self, t):
-        return t.NUM
+        nodo = NodoNum(t.value)
+        nodo.escribir()
 
     @_('ID')
     def brack(self, t):
@@ -244,72 +261,97 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     # Functions
     #---------------------------------------------------------------------------
-    # @_('ID "(" paramlist ")"')
-    # def funcion(self, t):
-    #     
-    #     pass
+    @_('tipo ID "(" tiposInp ")" "{" entrada devolver "}"')
+    def functiondef(self, t):
+        pass
     
-    # @_('PRINTF "(" STR restoF ")"')
-    # def funcion(self, t):
-    #     pass
+    @_('tipo ID tiposInpRe')
+    def tiposInp(self, t):
+        pass
+
+    @_('')
+    def tiposInp(self, t):
+        pass
+
+    @_('RETURN operacion')
+    def devolver(self, t):
+        pass
+
+    @_('"," tipo ID tiposInpRe')
+    def tiposInpRe(self, t):
+        pass
+        
+    @_('')
+    def tiposInpRe(self, t):
+        pass
+        
+    @_('ID "(" paramlist ")"')
+    def funcioncall(self, t):
+        pass
+
+    @_('PRINTF "(" STR restoF ")"')
+    def funcioncall(self, t):
+        pass
+
+    @_('SCANF "(" STR "," "&" ID restoScan ")"')
+    def funcioncall(self, t):
+        pass
+
+    @_('elm restoF')
+    def paramlist(self, t):
+        pass
+
+    @_('')
+    def paramlist(self, t):
+        pass
     
-    # @_('SCANF "(" STR restoS ")"')
-    # def funcion(self, t):
-    #     pass
     
-    # @_('elm restoF')
-    # def paramlist(self, t):
-    #     pass
+    @_('ID')
+    def elm(self, t):
+        pass
+
+    @_('NUM')
+    def elm(self, t):
+        pass
+        
+    @_('operacion')
+    def elm(self, t):
+        pass
+
+    @_('"," elm restoF')
+    def restoF(self, t):
+        pass
+
+    @_('')
+    def restoF(self, t):
+        pass
     
-    # @_(' ')
-    # def paramlist(self, t):
-    #     pass
-
-    # @_('ID')
-    # def elm(self, t):
-    #     pass
-
-    # @_('NUM')
-    # def elm(self, t):
-    #     pass
+    @_('"," "&" ID restoScan')
+    def restoScan(self, t):
+        pass
     
-    # @_('operacion')
-    # def elm(self, t):
-    #     pass
-
-
-    # @_('"," elm restoF')
-    # def restoF(self, t):
-    #     pass
-
-    # @_(' ')
-    # def restoF(self, t):
-    #     pass
-
-    # @_('"," "&" ID restoS')
-    # def restoS(self, t):
-    #     pass
-
-    # @_('"," "&" ID')
-    # def restoS(self, t):
-    #     pass
-
+    @_('')
+    def restoScan(self, t):
+        pass
 
     #---------------------------------------------------------------------------
     
 
 
-#   ┌────────────────────────────────────────────────┐
-#                       Main                      
-#  └────────────────────────────────────────────────┘
+#   ┌──────────────────────────────────────────────────────────────────────────┐
+#                                       Main                      
+#  └──────────────────────────────────────────────────────────────────────────┘
 
 
 
 if __name__ == "__main__":
-    global tablaAsig, tablaValor
+    global tablaAsig, tablaValor, f_entrada, f_salida
 
     lexer = ClassLexer()
     parser = ClassParser()
+
+    f_entrada = open('main.c', 'r')
+    f_salida = open('main.s', 'x') 
 
     tablaAsig = {}
     tablaValor = {}
