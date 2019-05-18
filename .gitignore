@@ -1,3 +1,4 @@
 Antonto/
 .vscode/
 *.txt
+.DS_Store
