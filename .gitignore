@@ -1,4 +1,5 @@
 Antonto/
 .vscode/
+__pycache__/
 *.txt
 .DS_Store

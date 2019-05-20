@@ -1,8 +1,10 @@
 from sly import Lexer, Parser
 from lexico import ClassLexer
 
-global tablaAsig, tablaValor
 
+tabla = {}          # tabla con los valores del main: funciones: global:
+functionID = None   # tuple para el nombre de la función y el estado de la pila
+inFunction = False  # Variable para saber si estamos en una función o no
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Nodos                      
@@ -27,17 +29,33 @@ class NodoFuncion(Nodo):
 class NodoNum(Nodo):
     v = None
     def __init__(self, valor):
-        self.v = valor
+        self.v = valor              # le pasamos el valor del dígito
     def escribir(self):
         f_salida.write("movl $(",self.v,"), %eax")        
 
 
-#class NodoID(Nodo):
-#    v = None
-#    def __init__(self, valor):
-#        self.v = valor
-#    def escribir(self):
-#        f_salida.write("movl "tablaValor)
+class NodoPush(Nodo):
+    def escribir(self):
+        f_salida.write("pushl %eax;\n")
+
+
+class NodoSumResProdDiv(Nodo):
+    car = None
+    def __init__(self, valor):
+        self.car = valor            # car toma el valor de addl, subl, imull, idivl
+    def escribir(self):
+        if car == "idivl":
+            f_salida.write("\tmovl %eax, %ebx;\n\tpopl %eax;\n\tcdq;\n\t"+car+" %ebx;\n")
+        else:
+            f_salida.write("\tmovl %eax, %ebx;\n\tpopl %eax;\n\t"+car+" %ebx, %eax;\n")
+
+
+class NodoID(Nodo):
+    v = None
+    def __init__(self, valor):
+        self.v = valor
+    def escribir(self):
+        f_salida.write("movl ")
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Parser                      
@@ -50,69 +68,120 @@ class ClassParser(Parser):
     def __init__(self):
         self.names = {}
 
+    #---------------------------------------------------------------------------
+	# Entradas y sentencias
+    #---------------------------------------------------------------------------
     @_('sentencia ";" entrada')
     def entrada(self, t):
         pass
+    
+    
+    @_('functiondef entrada')
+    def entrada(self, t):
+        pass
+    
 
     @_(" ")
     def entrada(self, t):
         pass
 
 
-    #---------------------------------------------------------------------------
-	# Definiciones
-    #---------------------------------------------------------------------------
-
     @_('definicion')
     def sentencia(self, t):
         pass
+    
 
+    @_('aginacion')
+    def sentencia(self, t):
+        pass
+
+        
+    @_('operacion')
+    def sentencia(self, t):
+        pass
+
+    
+    @_('sentencia')
+    def sentenciaInFunc(self, t):
+        pass
+
+
+    @_('devolver')
+    def sentenciaInFunc(self, t):
+        pass
+
+
+    #---------------------------------------------------------------------------
+	# Definiciones
+    #---------------------------------------------------------------------------
     @_('tipo lista')
     def definicion(self, t):
-        return t.tipo
+        pass
+
+    @_(' ')
+    def definicion(self, t):
+        pass
 
     @_("INT")
     def tipo(self, t):
         return NodoInt()
 
-    @_('empty1 elto empty2 resto')
+    @_('elto resto')
     def lista(self, t):
-        return t[-1]
-
-    @_("")
-    def empty1(self, t):
-        return t[-1]
-
-    @_("")
-    def empty2(self, t):
-        return t[-2]
+        pass
 
     @_('ID')
     def elto(self, t):
-        tablaAsig[t.ID] = t[-2].escribir()
+        pass
 
     @_('ID "=" operacion')
     def elto(self, t):
-        tablaAsig[t.ID] = t[-4].escribir()
-        tablaValor[t.ID] =  t.operacion
-
-    @_('"," empty3 elto empty4 resto')
-    def resto(self, t):
         pass
 
-    @_("")
-    def empty3(self, t):
-        return t[-4]
-
-    @_("")
-    def empty4(self, t):
-        return t[-3]
+    @_('"," elto resto')
+    def resto(self, t):
+        pass
 
     @_("")
     def resto(self, t):
         pass
 
 
+	#---------------------------------------------------------------------------
+	# Operaciones de asignación
+    #---------------------------------------------------------------------------
+    @_('asignacion')
+    def sentencia(self, t):
+        pass
+
+    @_('ID "=" operacion')
+    def asignacion(self, t):
+        tablaValor[t.ID] = t.operacion
+
+
+    @_('ID MASEQ operacion')
+    def asignacion(self, t):
+        tablaValor[t.ID] += t.operacion
+
+
+    @_('ID MENOSEQ operacion')
+    def asignacion(self, t):
+        tablaValor[t.ID] -= t.operacion
+
+
+    @_('ID POREQ operacion')
+    def asignacion(self, t):          
+        tablaValor[t.ID] *= t.operacion
+
+
+    @_('ID DIVEQ operacion')
+    def asignacion(self, t):
+        tablaValor[t.ID] /= t.operacion
+
+
+    @_('ID MODEQ operacion')
+    def asignacion(self, t):
+        tablaValor[t.ID] %= t.operacion
 
     #---------------------------------------------------------------------------
 	# Operaciones aritméticas, relacionales y lógicas
@@ -214,7 +283,6 @@ class ClassParser(Parser):
     def brack(self, t):
         return t.operacion
 
-    
     @_('NUM')
     def brack(self, t):
         nodo = NodoNum(t.value)
@@ -224,55 +292,22 @@ class ClassParser(Parser):
     def brack(self, t):
         return tablaValor[t.ID]    
 
-	#---------------------------------------------------------------------------
-	# Operaciones de asignación
-    #---------------------------------------------------------------------------
-    @_('asignacion')
-    def sentencia(self, t):
-        pass
-
-    @_('ID "=" operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] = t.operacion
-
-
-    @_('ID MASEQ operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] += t.operacion
-
-
-    @_('ID MENOSEQ operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] -= t.operacion
-
-
-    @_('ID POREQ operacion')
-    def asignacion(self, t):          
-        tablaValor[t.ID] *= t.operacion
-
-
-    @_('ID DIVEQ operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] /= t.operacion
-
-
-    @_('ID MODEQ operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] %= t.operacion
-
-
-
 
     #---------------------------------------------------------------------------
     # Functions
     #---------------------------------------------------------------------------
     @_('tipo ID "(" tiposInp ")" "{" entrada devolver "}"')
-    def functiondef(self, t):
-        pass
+    def functiondef(self, t): 
+        global functionID, tabla, inFunction
+        inFunction = True
+        functionID = (t.ID, 4)
+        tabla[functionID[0]] = {}
     
     @_('tipo ID tiposInpRe')
     def tiposInp(self, t):
-        pass
+        global functionID, tabla
+        funtionID[1] += 4
+        tabla[functionID[0]][t.ID] = functionID[1]
 
     @_('')
     def tiposInp(self, t):
@@ -280,11 +315,14 @@ class ClassParser(Parser):
 
     @_('RETURN operacion')
     def devolver(self, t):
-        pass
+        global inFunction
+        inFunction = False # SIN TERMINAR
 
     @_('"," tipo ID tiposInpRe')
     def tiposInpRe(self, t):
-        pass
+        global functionID, tabla
+        funtionID[1] += 4
+        tabla[functionID[0]][t.ID] = functionID[1]
         
     @_('')
     def tiposInpRe(self, t):
@@ -339,18 +377,12 @@ class ClassParser(Parser):
     def restoScan(self, t):
         pass
 
-    #---------------------------------------------------------------------------
-    
-
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                       Main                      
 #  └──────────────────────────────────────────────────────────────────────────┘
 
-
-
 if __name__ == "__main__":
-    global tablaAsig, tablaValor, f_entrada, f_salida
 
     lexer = ClassLexer()
     parser = ClassParser()
