@@ -15,15 +15,16 @@ class Nodo:
         pass
 
 
-class NodoInt(Nodo):
-    def escribir(self):
-        return "int"
-
-
 class NodoFuncion(Nodo):
-    def escribirPrologo(self, ID, args):
+    def escribirPrologo(self, ID):
         global f_salida
-        f_salida.write(".text\n.globl ", ID, "\n.type ", ID, ", @function\n", ID, ":\n\tpushl %ebp\n\tmovl %esp, %ebp\n\tsubl ")
+        f_salida.write(".text\n.globl ", ID, "\n.type ", ID, ", @function\n", ID, ":\n\tpushl %ebp\n\tmovl %esp, %ebp")
+
+
+class NodoDefinicion(Nodo):
+    def escribir(self):
+        global f_salida
+        f_salida.write("\n\tsubl $4, %esp")     # para escribir cada declaración de una variable
 
 
 class NodoNum(Nodo):
@@ -151,8 +152,7 @@ class ClassParser(Parser):
 
     @_("INT")
     def tipo(self, t):
-        return NodoInt()
-
+        pass
 
     @_('elto resto')
     def lista(self, t):
@@ -161,17 +161,27 @@ class ClassParser(Parser):
 
     @_('ID')
     def elto(self, t):
-        global inFunction
+        global inFunction, functionID
         if not(inFunction):
-            tabla['global'].add(t.value)
+            tabla['global'].add(t.ID)
         else: 
-            tabla[FunctionID[]]
-            # por implementar
+            functionID[2] -= 4
+            tabla[functionID[0]][t.ID] = functionID[2]
 
 
-    @_('ID "=" operacion')
+    @_('ID emptyDef0 "=" operacion')
     def elto(self, t):        
         pass
+
+
+    @_(' ')
+    def emptyDef0(self, t):
+        global inFunction, functionID
+        if not(inFunction):
+            tabla['global'].add(t[-1])
+        else: 
+            functionID[2] -= 4
+            tabla[functionID[0]][t[-1]] = functionID[2]
 
 
     @_('"," elto resto')
