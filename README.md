@@ -33,6 +33,10 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ bucleWhile
 
 
+**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ ε
+
 *****
 
 **definicion** ➞ tipo lista 
@@ -140,9 +144,6 @@
 **tiposInp**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ➞ tipo ID tiposInpRe 
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ ε
-
-
-**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion 
 
 
 **tiposInpRe**&nbsp;&nbsp;➞ "," tipo ID tiposInpRe
