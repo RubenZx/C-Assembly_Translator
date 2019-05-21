@@ -71,7 +71,7 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
 	# Entradas y sentencias
     #---------------------------------------------------------------------------
-    @_('sentencia ";" entrada')
+    @_('sentencia entrada')
     def entrada(self, t):
         pass
     
@@ -81,32 +81,57 @@ class ClassParser(Parser):
         pass
     
 
-    @_(" ")
+    @_(' ')
     def entrada(self, t):
         pass
 
 
-    @_('definicion')
+    @_('definicion ";"')
     def sentencia(self, t):
         pass
-    
 
-    @_('aginacion')
+
+    @_('aginacion ";"')
     def sentencia(self, t):
         pass
 
         
-    @_('operacion')
+    @_('operacion ";"')
     def sentencia(self, t):
         pass
 
     
+    @_('sentenciaInFunc entradaInFunc')
+    def entradaInFunc(self, t):
+        pass
+
+    
+    @_('functionIf entradaInFunc')
+    def entradaInFunc(self, t):
+        pass
+        
+
+    @_('bucleWhile entradaInFunc')
+    def entradaInFunc(self, t):
+        pass
+
+
+    @_(' ')
+    def entradaInFunc(self, t):
+        pass
+        
+        
     @_('sentencia')
     def sentenciaInFunc(self, t):
         pass
 
 
-    @_('devolver')
+    @_('funcionIf')
+    def sentenciaInFunc(self, t):
+        pass
+
+
+    @_('funcionWhile')
     def sentenciaInFunc(self, t):
         pass
 
@@ -118,31 +143,43 @@ class ClassParser(Parser):
     def definicion(self, t):
         pass
 
+
     @_(' ')
     def definicion(self, t):
         pass
+
 
     @_("INT")
     def tipo(self, t):
         return NodoInt()
 
+
     @_('elto resto')
     def lista(self, t):
         pass
 
+
     @_('ID')
     def elto(self, t):
-        pass
+        global inFunction
+        if not(inFunction):
+            tabla['global'].add(t.value)
+        else: 
+            tabla[FunctionID[]]
+            # por implementar
+
 
     @_('ID "=" operacion')
-    def elto(self, t):
+    def elto(self, t):        
         pass
+
 
     @_('"," elto resto')
     def resto(self, t):
         pass
 
-    @_("")
+
+    @_(' ')
     def resto(self, t):
         pass
 
@@ -150,10 +187,6 @@ class ClassParser(Parser):
 	#---------------------------------------------------------------------------
 	# Operaciones de asignación
     #---------------------------------------------------------------------------
-    @_('asignacion')
-    def sentencia(self, t):
-        pass
-
     @_('ID "=" operacion')
     def asignacion(self, t):
         tablaValor[t.ID] = t.operacion
@@ -183,6 +216,7 @@ class ClassParser(Parser):
     def asignacion(self, t):
         tablaValor[t.ID] %= t.operacion
 
+
     #---------------------------------------------------------------------------
 	# Operaciones aritméticas, relacionales y lógicas
     #---------------------------------------------------------------------------
@@ -190,103 +224,128 @@ class ClassParser(Parser):
     def operacion(self, t):
         return (t.operacion or t.bopand)
 
+
     @_('bopand')
     def operacion(self, t):
         return t.bopand
+
 
     @_('bopand AND bopeq')
     def bopand(self, t):
         return (t.bopand and t.bopeq)
 
+
     @_('bopeq')
     def bopand(self, t):
         return t.bopeq
+
 
     @_('bopeq EQ bopcomp')
     def bopeq(self, t):
         return (t.bopeq == t.bopcomp)
 
+
     @_('bopeq NEQ bopcomp')
     def bopeq(self, t):
         return (t.bopeq != t.bopcomp)
+
 
     @_('bopcomp')
     def bopeq(self, t):
         return t.bopcomp
 
+
     @_('bopcomp "<" exprar')
     def bopcomp(self, t):
         return (t.bopcomp < t.exprar)
+
 
     @_('bopcomp LTEQ exprar')
     def bopcomp(self, t):
         return (t.bopcomp <= t.exprar)
 
+
     @_('bopcomp ">" exprar')
     def bopcomp(self, t):
         return (t.bopcomp > t.exprar)
+
 
     @_('bopcomp GTEQ exprar')
     def bopcomp(self, t):
         return (t.bopcomp >= t.exprar)
 
+
     @_('exprar')
     def bopcomp(self, t):
         return t.exprar
     
+
     @_('exprar "+" exprprod')
     def exprar(self, t):
         return t.exprar + t.exprprod
+    
     
     @_('exprar "-" exprprod')
     def exprar(self, t):
         return t.exprar - t.exprprod
     
+
     @_('exprprod')
     def exprar(self, t):
         return t.exprprod
+
 
     @_('exprprod "*" uar')
     def exprprod(self, t):
         nodo = nodoProd()
         return t.exprprod * t.uar
+
     
     @_('exprprod "/" uar')
     def exprprod(self, t):
         return t.exprprod / t.uar
+
     
     @_('exprprod "%" uar')
     def exprprod(self, t):
         return t.exprprod % t.uar
+
     
     @_('uar')
     def exprprod(self, t):
         return t.uar
+
     
     @_('"-" brack')
     def uar(self, t):
         return -t.brack
+
     
     @_('"+" brack')
     def uar(self, t):
         return t.brack
-    
+
+
     @_('"!" brack')
     def uar(self, t):
         return not t.brack
+
     
     @_('brack')
     def uar(self, t):
         return t.brack
-    
+
+
     @_('"(" operacion ")"')
     def brack(self, t):
         return t.operacion
+
 
     @_('NUM')
     def brack(self, t):
         nodo = NodoNum(t.value)
         nodo.escribir()
+
 
     @_('ID')
     def brack(self, t):
@@ -296,55 +355,85 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     # Functions
     #---------------------------------------------------------------------------
-    @_('tipo ID "(" tiposInp ")" "{" entrada devolver "}"')
+    @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc "}"')
     def functiondef(self, t): 
+        pass
+    
+
+    @_(' ')
+    def emptyFunc0(self, t):
         global functionID, tabla, inFunction
         inFunction = True
-        functionID = (t.ID, 4)
+        functionID = (t[-1], 4, 0) # functionID = ('name', pila_arriba, pila_abajo)
         tabla[functionID[0]] = {}
-    
-    @_('tipo ID tiposInpRe')
-    def tiposInp(self, t):
-        global functionID, tabla
-        funtionID[1] += 4
-        tabla[functionID[0]][t.ID] = functionID[1]
 
-    @_('')
+
+    @_('tipo ID emptyFunc1 tiposInpRe')
     def tiposInp(self, t):
         pass
+
+
+    @_(' ')
+    def emptyFunc1(self, t):
+        global functionID, tabla
+        funtionID[1] += 4
+        tabla[functionID[0]][t[-1]] = functionID[1]
+        # return t[-1]
+        
+
+    @_(' ')
+    def tiposInp(self, t):
+        pass
+
 
     @_('RETURN operacion')
     def devolver(self, t):
         global inFunction
         inFunction = False # SIN TERMINAR
 
-    @_('"," tipo ID tiposInpRe')
+
+    @_('"," tipo ID emptyFunc2 tiposInpRe')
     def tiposInpRe(self, t):
+        # global functionID, tabla
+        # funtionID[1] += 4
+        # tabla[functionID[0]][t.ID] = functionID[1]
+        pass
+
+
+    @_(' ')
+    def emptyFunc2(self, t):
         global functionID, tabla
         funtionID[1] += 4
-        tabla[functionID[0]][t.ID] = functionID[1]
-        
+        tabla[functionID[0]][t[-1]] = functionID[1]
+        # return t[-1]
+
+
     @_('')
     def tiposInpRe(self, t):
         pass
-        
+
+
     @_('ID "(" paramlist ")"')
     def funcioncall(self, t):
         pass
+
 
     @_('PRINTF "(" STR restoF ")"')
     def funcioncall(self, t):
         pass
 
+
     @_('SCANF "(" STR "," "&" ID restoScan ")"')
     def funcioncall(self, t):
         pass
+
 
     @_('elm restoF')
     def paramlist(self, t):
         pass
 
-    @_('')
+
+    @_(' ')
     def paramlist(self, t):
         pass
     
@@ -353,30 +442,78 @@ class ClassParser(Parser):
     def elm(self, t):
         pass
 
+
     @_('NUM')
     def elm(self, t):
         pass
         
+
     @_('operacion')
     def elm(self, t):
         pass
+
 
     @_('"," elm restoF')
     def restoF(self, t):
         pass
 
+
     @_('')
     def restoF(self, t):
         pass
     
+
     @_('"," "&" ID restoScan')
     def restoScan(self, t):
         pass
     
+
     @_('')
     def restoScan(self, t):
         pass
 
+
+    #---------------------------------------------------------------------------
+	# If y While
+    #---------------------------------------------------------------------------
+    @_('IF "(" operacion ")" "{" entradaInFunc "}"')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE "{" entradaInFunc "}"')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE sentenciaInFunc')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('IF "(" operacion ")" sentenciaInFunc')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('IF "(" operacion ")" sentenciaInFunc ELSE "{" entradaInFunc "}"')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('IF "(" operacion ")" sentenciaInFunc ELSE sentenciaInFunc')
+    def funcionIf(self, t):
+        pass
+
+
+    @_('WHILE "(" operacion ")" "{" entradaInFunc "}"')
+    def bucleWhile(self, t):
+        pass
+        
+
+    @_('WHILE "(" operacion ")" sentenciaInFunc')
+    def bucleWhile(self, t):
+        pass
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                       Main                      
