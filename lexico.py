@@ -27,6 +27,7 @@ class ClassLexer(Lexer):
         PP,
         MM,
         STR,
+        RETURN
     }
 
     # Ignores and literals
@@ -44,6 +45,8 @@ class ClassLexer(Lexer):
         "]",
         "(",
         ")",
+        "{",
+        "}",
         "!",
         "=",
         ">",
@@ -74,7 +77,7 @@ class ClassLexer(Lexer):
 
     # Special cases
     ID["if"] = IF
-    ID["return"] = IF
+    ID["return"] = RETURN
     ID["else"] = ELSE
     ID["while"] = WHILE
     ID["printf"] = PRINTF

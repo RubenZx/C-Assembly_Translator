@@ -3,6 +3,7 @@ from lexico import ClassLexer
 
 
 tabla = {}          # tabla con los valores del main: funciones: global:
+tabla['global'] = set()
 functionID = None   # tuple para el nombre de la función y el estado de la pila
 inFunction = False  # Variable para saber si estamos en una función o no
 
@@ -16,9 +17,13 @@ class Nodo:
 
 
 class NodoFuncion(Nodo):
-    def escribirPrologo(self, ID):
+    def escribirPrologo(self, n_funcion):
         global f_salida
-        f_salida.write(".text\n.globl ", ID, "\n.type ", ID, ", @function\n", ID, ":\n\tpushl %ebp\n\tmovl %esp, %ebp")
+        f_salida.write(".text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\tpushl %ebp\n\tmovl %esp, %ebp")
+
+    def escribirEpilogo(self):
+        global f_salida
+        f_salida.write("\n\tmovl %ebp, %esp\n\tpopl %ebp\n\tret")    
 
 
 class NodoDefinicion(Nodo):
@@ -27,42 +32,50 @@ class NodoDefinicion(Nodo):
         f_salida.write("\n\tsubl $4, %esp")     # para escribir cada declaración de una variable
 
 
-class NodoNum(Nodo):
-    v = None
-    def __init__(self, valor):
-        self.v = valor              # le pasamos el valor del dígito
-    def escribir(self):
-        f_salida.write("movl $(",self.v,"), %eax")        
-
-
-class NodoPush(Nodo):
-    def escribir(self):
-        f_salida.write("pushl %eax;\n")
-
-
-class NodoSumResProdDiv(Nodo):
-    car = None
-    def __init__(self, valor):
-        self.car = valor            # car toma el valor de addl, subl, imull, idivl
-    def escribir(self):
-        if car == "idivl":
-            f_salida.write("\tmovl %eax, %ebx;\n\tpopl %eax;\n\tcdq;\n\t"+car+" %ebx;\n")
+class nodoAsignacion(Nodo):
+    def escribir(self, ID):
+        global f_salida, tabla, inFunction
+        if ID in tabla['global']:
+            f_salida.write("\n\tmovl %eax,"+ ID)
         else:
-            f_salida.write("\tmovl %eax, %ebx;\n\tpopl %eax;\n\t"+car+" %ebx, %eax;\n")
+            f_salida.write("\n\tmovl %eax,"+ str(tabla[functionID[0]][ID]) +"(%ebp)")
+
+
+class NodoNum(Nodo):
+    def escribir(self, v):
+        global f_salida
+        f_salida.write("\n\tmovl $("+str(v)+"), %eax")        
 
 
 class NodoID(Nodo):
-    v = None
-    def __init__(self, valor):
-        self.v = valor
+    def escribir(self, ID):
+        global inFunction, f_salida, functionID
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tmovl "+ID+"%eax")
+        else:
+            # ID de parametros o de variable local a una función
+            f_salida.write("\n\tmovl " + str(tabla[functionID[0]][ID])+ "(%ebp), %eax")
+    
+
+class NodoPush(Nodo):
     def escribir(self):
-        f_salida.write("movl ")
+        global f_salida
+        f_salida.write("\n\tpushl %eax;")
+
+
+class NodoSumResProdDiv(Nodo):
+    def escribir(self, car):
+        if car == "idivl":
+            f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;\n\tcdq;\n\t"+car+" %ebx;")
+        else:
+            f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;\n\t"+car+" %ebx, %eax;")
+
+
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Parser                      
 #  └──────────────────────────────────────────────────────────────────────────┘
-
-
 class ClassParser(Parser):
     tokens = ClassLexer.tokens
 
@@ -92,7 +105,7 @@ class ClassParser(Parser):
         pass
 
 
-    @_('aginacion ";"')
+    @_('asignacion ";"')
     def sentencia(self, t):
         pass
 
@@ -104,10 +117,10 @@ class ClassParser(Parser):
     
     @_('sentenciaInFunc entradaInFunc')
     def entradaInFunc(self, t):
-        pass
+        pass        
 
     
-    @_('functionIf entradaInFunc')
+    @_('funcionIf entradaInFunc')
     def entradaInFunc(self, t):
         pass
         
@@ -117,14 +130,15 @@ class ClassParser(Parser):
         pass
 
 
-    @_(' ')
+    @_('')
     def entradaInFunc(self, t):
         pass
         
         
     @_('sentencia')
     def sentenciaInFunc(self, t):
-        pass
+        print("aaaa")
+
 
 
     @_('funcionIf')
@@ -132,7 +146,7 @@ class ClassParser(Parser):
         pass
 
 
-    @_('funcionWhile')
+    @_('bucleWhile')
     def sentenciaInFunc(self, t):
         pass
 
@@ -161,17 +175,22 @@ class ClassParser(Parser):
 
     @_('ID')
     def elto(self, t):
+        print(t.ID, "\n")
         global inFunction, functionID
         if not(inFunction):
             tabla['global'].add(t.ID)
         else: 
             functionID[2] -= 4
             tabla[functionID[0]][t.ID] = functionID[2]
+            nodo = NodoDefinicion() 
+            nodo.escribir()             # subl $4, %ebp
+        
 
 
     @_('ID emptyDef0 "=" operacion')
-    def elto(self, t):        
-        pass
+    def elto(self, t): 
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     @_(' ')
@@ -182,7 +201,9 @@ class ClassParser(Parser):
         else: 
             functionID[2] -= 4
             tabla[functionID[0]][t[-1]] = functionID[2]
-
+            nodo = NodoDefinicion() 
+            nodo.escribir()             # subl $4, %ebp
+        
 
     @_('"," elto resto')
     def resto(self, t):
@@ -199,7 +220,12 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     @_('ID "=" operacion')
     def asignacion(self, t):
-        tablaValor[t.ID] = t.operacion
+        global tabla
+        print(tabla, "\n")
+        print(functionID, "\n")
+
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     @_('ID MASEQ operacion')
@@ -230,100 +256,102 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
 	# Operaciones aritméticas, relacionales y lógicas
     #---------------------------------------------------------------------------
-    @_('operacion OR bopand')
+    @_('operacion emptyPush OR bopand')
     def operacion(self, t):
         return (t.operacion or t.bopand)
 
 
     @_('bopand')
     def operacion(self, t):
-        return t.bopand
+        pass
 
 
-    @_('bopand AND bopeq')
+    @_('bopand emptyPush AND bopeq')
     def bopand(self, t):
         return (t.bopand and t.bopeq)
 
 
     @_('bopeq')
     def bopand(self, t):
-        return t.bopeq
+        pass
 
 
-    @_('bopeq EQ bopcomp')
+    @_('bopeq emptyPush EQ bopcomp')
     def bopeq(self, t):
         return (t.bopeq == t.bopcomp)
 
 
-    @_('bopeq NEQ bopcomp')
+    @_('bopeq emptyPush NEQ bopcomp')
     def bopeq(self, t):
         return (t.bopeq != t.bopcomp)
 
 
     @_('bopcomp')
     def bopeq(self, t):
-        return t.bopcomp
+        pass
 
-
-    @_('bopcomp "<" exprar')
+    @_('bopcomp emptyPush "<" exprar')
     def bopcomp(self, t):
         return (t.bopcomp < t.exprar)
 
 
-    @_('bopcomp LTEQ exprar')
+    @_('bopcomp emptyPush LTEQ exprar')
     def bopcomp(self, t):
         return (t.bopcomp <= t.exprar)
 
 
-    @_('bopcomp ">" exprar')
+    @_('bopcomp emptyPush ">" exprar')
     def bopcomp(self, t):
         return (t.bopcomp > t.exprar)
 
 
-    @_('bopcomp GTEQ exprar')
+    @_('bopcomp emptyPush GTEQ exprar')
     def bopcomp(self, t):
         return (t.bopcomp >= t.exprar)
 
 
     @_('exprar')
     def bopcomp(self, t):
-        return t.exprar
-    
+        pass
 
-    @_('exprar "+" exprprod')
+
+    @_('exprar emptyPush "+" exprprod')
     def exprar(self, t):
-        return t.exprar + t.exprprod
+        nodo = NodoSumResProdDiv()
+        nodo.escribir(car = 'addl')
     
     
-    @_('exprar "-" exprprod')
+    @_('exprar emptyPush "-" exprprod')
     def exprar(self, t):
-        return t.exprar - t.exprprod
+        nodo = NodoSumResProdDiv()
+        nodo.escribir(car = 'subl')
     
 
     @_('exprprod')
     def exprar(self, t):
-        return t.exprprod
+        pass
 
 
-    @_('exprprod "*" uar')
+    @_('exprprod emptyPush "*" uar')
     def exprprod(self, t):
-        nodo = nodoProd()
-        return t.exprprod * t.uar
+        nodo = NodoSumResProdDiv()
+        nodo.escribir(car = 'imull')
 
     
-    @_('exprprod "/" uar')
+    @_('exprprod emptyPush "/" uar')
     def exprprod(self, t):
-        return t.exprprod / t.uar
+        nodo = NodoSumResProdDiv()
+        nodo.escribir(car = 'idivl')
 
     
-    @_('exprprod "%" uar')
+    @_('exprprod emptyPush "%" uar')
     def exprprod(self, t):
         return t.exprprod % t.uar
 
     
     @_('uar')
     def exprprod(self, t):
-        return t.uar
+        pass
 
     
     @_('"-" brack')
@@ -343,39 +371,51 @@ class ClassParser(Parser):
     
     @_('brack')
     def uar(self, t):
-        return t.brack
+        pass
 
 
     @_('"(" operacion ")"')
     def brack(self, t):
-        return t.operacion
+        pass
 
 
     @_('NUM')
     def brack(self, t):
-        nodo = NodoNum(t.value)
-        nodo.escribir()
+        nodo = NodoNum() 
+        nodo.escribir(v = t.NUM)
 
 
     @_('ID')
     def brack(self, t):
-        return tablaValor[t.ID]    
+        nodo = NodoID()
+        nodo.escribir(ID = t.ID)
 
+
+    @_('')
+    def emptyPush(self, t):
+        nodo = NodoPush()
+        nodo.escribir()
+    
 
     #---------------------------------------------------------------------------
     # Functions
     #---------------------------------------------------------------------------
-    @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc "}"')
-    def functiondef(self, t): 
-        pass
-    
+    @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc devolver "}"')
+    def functiondef(self, t):   
+        global inFunction
+        nodo = NodoFuncion()
+        nodo.escribirEpilogo()
+        inFunction = False
+
 
     @_(' ')
     def emptyFunc0(self, t):
         global functionID, tabla, inFunction
         inFunction = True
-        functionID = (t[-1], 4, 0) # functionID = ('name', pila_arriba, pila_abajo)
+        functionID = [t[-1], 4, 0] # functionID = ('name', pila_arriba, pila_abajo)
         tabla[functionID[0]] = {}
+        nodo = NodoFuncion()
+        nodo.escribirPrologo(n_funcion = functionID[0])
 
 
     @_('tipo ID emptyFunc1 tiposInpRe')
@@ -386,7 +426,7 @@ class ClassParser(Parser):
     @_(' ')
     def emptyFunc1(self, t):
         global functionID, tabla
-        funtionID[1] += 4
+        functionID[1] += 4
         tabla[functionID[0]][t[-1]] = functionID[1]
         # return t[-1]
         
@@ -396,10 +436,11 @@ class ClassParser(Parser):
         pass
 
 
-    @_('RETURN operacion')
+    @_('RETURN operacion ";"')
     def devolver(self, t):
-        global inFunction
-        inFunction = False # SIN TERMINAR
+        # no hay que hacer nada pq el resultado de la operacion se guarda 
+        # en eax y devolvemos lo que se enceuntra en %eax con ret 
+        pass
 
 
     @_('"," tipo ID emptyFunc2 tiposInpRe')
@@ -534,14 +575,12 @@ if __name__ == "__main__":
     lexer = ClassLexer()
     parser = ClassParser()
 
-    f_entrada = open('main.c', 'r')
-    f_salida = open('main.s', 'x') 
+    f_entrada = open('prueba.c', 'r')
+    f_salida = open('main.s', 'w') 
+    
+    text = f_entrada.read()
+    f_entrada.close()
 
-    tablaAsig = {}
-    tablaValor = {}
-    # while True:
-
-    text = input("data type list > ")
     parser.parse(lexer.tokenize(text))
-    print(tablaAsig)
-    print(tablaValor)
+    f_salida.close()
+    print(tabla)
