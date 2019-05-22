@@ -33,10 +33,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ bucleWhile
 
 
-**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion 
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ ε
-
 *****
 
 **definicion** ➞ tipo lista 
@@ -138,7 +134,7 @@
 
 ---
 
-**functiondef** ➞ tipo ID "(" tiposInp ")" "{" entradaInFunc "}"     
+**functiondef** ➞ tipo ID "(" tiposInp ")" "{" entradaInFunc devolver "}"     
 
             
 **tiposInp**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ➞ tipo ID tiposInpRe 
@@ -178,6 +174,9 @@
 **restoScan**&nbsp;&nbsp;&nbsp;&nbsp;➞ "," "&" ID restoScan
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ ε
+
+
+**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion ";"
 
 ---
 
