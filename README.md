@@ -33,9 +33,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ bucleWhile
 
 
-**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion ";"
-
-
 *****
 
 **definicion** ➞ tipo lista 
@@ -137,7 +134,7 @@
 
 ---
 
-**functiondef** ➞ tipo ID "(" tiposInp ")" "{" entradaInFunc "}"     
+**functiondef** ➞ tipo ID "(" tiposInp ")" "{" entradaInFunc devolver "}"     
 
             
 **tiposInp**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ➞ tipo ID tiposInpRe 
@@ -178,9 +175,12 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ ε
 
+
+**devolver**&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;➞ RETURN operacion ";"
+
 ---
 
-**funcionIf**&nbsp;&nbsp;&nbsp; ➞ IF "(" operacion ")" "{" entradaInFunc devolver "}"
+**funcionIf**&nbsp;&nbsp;&nbsp; ➞ IF "(" operacion ")" "{" entradaInFunc "}"
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ IF "(" operacion ")" "{" entradaInFunc "}" ELSE "{" entradaInFunc "}" 
 
