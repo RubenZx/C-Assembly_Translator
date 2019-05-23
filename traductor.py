@@ -10,7 +10,15 @@ inFunction = False  # Variable para saber si estamos en una función o no
 listaparams = []
 numIF = 0
 numWhile = 0
-etiqueta = None
+nNeg = 0
+nDis = 0
+nConj = 0
+nEq = 0
+nNeq = 0
+nLe = 0
+nLt = 0
+nGe = 0
+nGt = 0
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Nodos                      
@@ -40,9 +48,9 @@ class nodoAsignacion(Nodo):
     def escribir(self, ID):
         global f_salida, tabla, inFunction
         if ID in tabla['global']:
-            f_salida.write("\n\tmovl %eax,"+ ID)
+            f_salida.write("\n\tmovl %eax, "+ ID)
         else:
-            f_salida.write("\n\tmovl %eax,"+ str(tabla[functionID[0]][ID]) +"(%ebp)")
+            f_salida.write("\n\tmovl %eax, "+ str(tabla[functionID[0]][ID]) +"(%ebp)")
 
 
 class NodoNum(Nodo):
@@ -56,7 +64,7 @@ class NodoID(Nodo):
         global inFunction, f_salida, functionID
         if ID in tabla['global']:
             # ID global
-            f_salida.write("\n\tmovl "+ID+"%eax")
+            f_salida.write("\n\tmovl "+ID +", %eax")
         else:
             # ID de parametros o de variable local a una función
             f_salida.write("\n\tmovl " + str(tabla[functionID[0]][ID])+ "(%ebp), %eax")
@@ -94,14 +102,11 @@ class nodoParams(Nodo):
                     
 
 # NODOS PARA IFELSE
-class NodoIFELSE(Nodo):
-    def escribir(self, cad):
-        global f_salida, numIF, etiqueta
-        if cad == "IF":
-            f_salida.write("\n\tcmpl $0, %eax\n\tje "+etiqueta + "\n\t# code for true:") # salta a la etiqueta true, si no saltará al final
-        else:
-            if cad == "ELSE":
-                f_salida.write("\n\tcmpl $0, %eax\n\tje "+etiqueta)
+class NodoIfElseWhile(Nodo):
+    def escribir(self, etq):
+        global f_salida, numIF
+        f_salida.write("\n\tcmpl $0, %eax\n\tje "+etq + "\n\t") 
+        
                             
 
 class NodoSalto(Nodo):
@@ -113,6 +118,155 @@ class NodoSalto(Nodo):
         global f_salida
         f_salida.write("\n\n"+cad+":")
 
+
+class NodoLogicDisj(Nodo):
+    def escribir(self):
+        global nDis
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl $(0), %eax\n\tje disjoin"+str(nDis))
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\n\tjmp fin_disjoin"+str(nDis))
+        f_salida.write("\ndisjoin"+str(nDis)+":")
+        nDis +=1
+        f_salida.write("\n\tcmp $(0), %ebx\n\tje disjoin"+str(nDis))
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\n\tjmp fin_disjoin"+str(nDis))
+        f_salida.write("\ndisjoin"+str(nDis)+":")
+        f_salida.write("\n\tmovl $(0), %eax")  
+        f_salida.write("\nfin_disjoin"+str(nDis-1)+":")
+
+
+class NodoLogicConj(Nodo):
+    def escribir(self):
+        global nConj
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl $(0), %eax\n\tjne conjunction"+str(nConj))
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\n\tjmp fin_conjunction"+str(nConj))
+        f_salida.write("\nconjunction"+str(nConj)+":")
+        nConj +=1
+        f_salida.write("\n\tcmp $(0), %ebx\n\tjne conjunction"+str(nConj))
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\n\tjmp fin_conjunction"+str(nConj))
+        f_salida.write("\nconjunction"+str(nConj)+":")
+        f_salida.write("\n\tmovl $(1), %eax")  
+        f_salida.write("\nfin_conjunction"+str(nConj-1)+":")
+
+
+class NodoEqual(Nodo):
+    def escribir(self):
+        global nEq
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjne equal"+str(nEq))
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\n\tjmp fin_equal"+str(nEq))
+        f_salida.write("\nequal"+str(nEq)+":")
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\nfin_equal"+str(nEq)+":")
+
+
+class NodoNotEqual(Nodo):
+    def escribir(self):
+        global nNeq
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjne notEqual"+str(nNeq))
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\n\tjmp fin_notEqual"+str(nNeq))
+        f_salida.write("\nnotEqual"+str(nNeq)+":")
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\nfin_notEqual"+str(nNeq)+":")
+
+        
+class NodoLessEq(Nodo):
+    def escribir(self):
+        global nLe
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjle lessEqual"+str(nLe))
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\n\tjmp fin_lessEqual"+str(nLe))
+        f_salida.write("\nlessEqual"+str(nLe)+":")
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\nfin_lessEqual"+str(nLe)+":")
+
+
+class NodoLessThan(Nodo):
+    def escribir(self):
+        global nLt
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjbe lessThan"+str(nLt))
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\n\tjmp fin_lessThan"+str(nLt))
+        f_salida.write("\nlessThan"+str(nLt)+":")
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\nfin_lessThan"+str(nLt)+":")
+
+
+class NodoGreaterEq(Nodo):
+    def escribir(self):
+        global nGe
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjbe greaterEq"+str(nGe))
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\n\tjmp fin_greaterEq"+str(nGe))
+        f_salida.write("\ngreaterEq"+str(nGe)+":")
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\nfin_greaterEq"+str(nGe)+":")
+
+
+class NodoGreaterThan(Nodo):
+    def escribir(self):
+        global nGt
+        f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjle greaterThan"+str(nGt))
+        f_salida.write("\n\tmovl $(1), %eax")
+        f_salida.write("\n\tjmp fin_greaterThan"+str(nGt))
+        f_salida.write("\ngreaterThan"+str(nGt)+":")
+        f_salida.write("\n\tmovl $(0), %eax")
+        f_salida.write("\nfin_greaterThan"+str(nGt)+":")
+
+
+class NodoMasEq(Nodo):
+    def escribir(self, ID):
+        nodo = NodoSumResProdDiv()
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tpushl "+ID)
+        else:
+            # ID de parametros o de variable local a una función
+            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+
+        nodo.escribir(car = "addl")
+        
+
+class NodoMenosEq(Nodo):
+    def escribir(self, ID):
+        nodo = NodoSumResProdDiv()
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tpushl "+ID)
+        else:
+            # ID de parametros o de variable local a una función
+            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+
+        nodo.escribir(car = "subl")
+
+
+class NodoPorEq(Nodo):
+    def escribir(self, ID):
+        nodo = NodoSumResProdDiv()
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tpushl "+ID)
+        else:
+            # ID de parametros o de variable local a una función
+            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+
+        nodo.escribir(car = "imull")
+
+
+class NodoDivEq(Nodo):
+    def escribir(self, ID):
+        nodo = NodoSumResProdDiv()
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tpushl "+ID)
+        else:
+            # ID de parametros o de variable local a una función
+            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+
+        nodo.escribir(car = "idivl")
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Parser                      
@@ -214,6 +368,7 @@ class ClassParser(Parser):
     def tipo(self, t):
         pass
 
+
     @_('elto resto')
     def lista(self, t):
         pass
@@ -271,27 +426,39 @@ class ClassParser(Parser):
 
     @_('ID MASEQ operacion')
     def asignacion(self, t):
-        tablaValor[t.ID] += t.operacion
+        nodo = NodoMasEq()
+        nodo.escribir(ID = t.ID)
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     @_('ID MENOSEQ operacion')
     def asignacion(self, t):
-        tablaValor[t.ID] -= t.operacion
+        nodo = NodoMenosEq()
+        nodo.escribir(ID = t.ID)
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     @_('ID POREQ operacion')
     def asignacion(self, t):          
-        tablaValor[t.ID] *= t.operacion
+        nodo = NodoPorEq()
+        nodo.escribir(ID = t.ID)
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     @_('ID DIVEQ operacion')
     def asignacion(self, t):
-        tablaValor[t.ID] /= t.operacion
+        nodo = NodoDivEq()
+        nodo.escribir(ID = t.ID)
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
-    @_('ID MODEQ operacion')
-    def asignacion(self, t):
-        tablaValor[t.ID] %= t.operacion
+    # @_('ID MODEQ operacion')
+    # def asignacion(self, t):
+    #     tablaValor[t.ID] %= t.operacion
 
 
     #---------------------------------------------------------------------------
@@ -299,8 +466,10 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     @_('operacion emptyPush OR bopand')
     def operacion(self, t):
-        return (t.operacion or t.bopand)
-
+        global nDis
+        nDis += 1
+        nodo = NodoLogicDisj()
+        nodo.escribir()
 
     @_('bopand')
     def operacion(self, t):
@@ -309,7 +478,10 @@ class ClassParser(Parser):
 
     @_('bopand emptyPush AND bopeq')
     def bopand(self, t):
-        return (t.bopand and t.bopeq)
+        global nConj
+        nConj += 1
+        nodo = NodoLogicConj()
+        nodo.escribir()
 
 
     @_('bopeq')
@@ -319,12 +491,18 @@ class ClassParser(Parser):
 
     @_('bopeq emptyPush EQ bopcomp')
     def bopeq(self, t):
-        return (t.bopeq == t.bopcomp)
+        global nEq
+        nEq += 1
+        nodo = NodoEqual()
+        nodo.escribir()
 
 
     @_('bopeq emptyPush NEQ bopcomp')
     def bopeq(self, t):
-        return (t.bopeq != t.bopcomp)
+        global nNeq
+        nNeq += 1
+        nodo = NodoNotEqual()
+        nodo.escribir()
 
 
     @_('bopcomp')
@@ -333,22 +511,35 @@ class ClassParser(Parser):
 
     @_('bopcomp emptyPush "<" exprar')
     def bopcomp(self, t):
-        return (t.bopcomp < t.exprar)
+        global nLt
+        nLt += 1
+        nodo = NodoLessThan()
+        nodo.escribir()
+
 
 
     @_('bopcomp emptyPush LTEQ exprar')
     def bopcomp(self, t):
-        return (t.bopcomp <= t.exprar)
+        global nLe
+        nLe += 1
+        nodo = NodoLessEq()
+        nodo.escribir()
 
 
     @_('bopcomp emptyPush ">" exprar')
     def bopcomp(self, t):
-        return (t.bopcomp > t.exprar)
+        global nGt
+        nGt += 1
+        nodo = NodoGreaterThan()
+        nodo.escribir()
 
 
     @_('bopcomp emptyPush GTEQ exprar')
     def bopcomp(self, t):
-        return (t.bopcomp >= t.exprar)
+        global nGe
+        nGe += 1
+        nodo = NodoGreaterEq()
+        nodo.escribir()
 
 
     @_('exprar')
@@ -384,10 +575,11 @@ class ClassParser(Parser):
         nodo = NodoSumResProdDiv()
         nodo.escribir(car = 'idivl')
 
-    
-    @_('exprprod emptyPush "%" uar')
-    def exprprod(self, t):
-        return t.exprprod % t.uar
+
+    # NO SABEMOS SI HACERLO 
+    #@_('exprprod emptyPush "%" uar')
+    #def exprprod(self, t):
+    #    return t.exprprod % t.uar
 
     
     @_('uar')
@@ -397,17 +589,33 @@ class ClassParser(Parser):
     
     @_('"-" brack')
     def uar(self, t):
-        return -t.brack
+        nodo = NodoPush()
+        nodo.escribir()
+        nodo = NodoNum()
+        nodo.escribir(v = -1)
+        nodo = NodoSumResProdDiv()
+        nodo.escribir("imull")
 
     
     @_('"+" brack')
     def uar(self, t):
-        return t.brack
+        pass
 
 
     @_('"!" brack')
     def uar(self, t):
-        return not t.brack
+        global nNeg
+        nNeg += 1
+        nodo = NodoIfElseWhile()
+        nodo.escribir(etq = "negation"+str(nNeg))   # comparacion
+        nodoN = NodoNum()
+        nodoN.escribir(v = 0)                        # movl 0, %eax
+        nodo = NodoSalto()
+        nodo.escribirSalto(cad = "fin_negation"+str(nNeg))  
+        nodo.escribirEtiqueta(cad ="negation"+str(nNeg))
+        nodoN.escribir(v = 1)                        # movl 1, %eax
+        nodo.escribirEtiqueta(cad = "fin_negation"+str(nNeg))
+        
 
     
     @_('brack')
@@ -575,90 +783,70 @@ class ClassParser(Parser):
 
 
     #---------------------------------------------------------------------------
-	# If y While
-    #---------------------------------------------------------------------------   
-    
-    @_('IF "(" operacion ")" emptyIF "{" entradaInFunc "}"')
+	# IfElse y While
+    #---------------------------------------------------------------------------       
+    @_('IF "(" operacion ")" emptyJumpFalse "{" entradaInFunc "}"  funcionElse')
     def funcionIf(self, t):
-        nodo = NodoSalto()
-        nodo.escribirEtiqueta(cad = "final"+str(numIF))
-
-
-    @_('')
-    def emptyIF(self, t):
-        global numIF, etiqueta
-        numIF += 1
-        etiqueta = "final"+str(numIF)
-        nodo = NodoIFELSE()
-        nodo.escribir(cad = "IF")
-        
-    
-    #@_('')
-    #def emptyJUMP(self, t):
-    #    global numIF
-    #    nodo = NodoSalto()
-    #    nodo.escribir(cad = "final"+numIF)
-
-    
-
-    @_('IF "(" operacion ")" emptyIFELSE "{" entradaInFunc "}" emptyFinal ELSE "{" entradaInFunc "}"')
-    def funcionIf(self, t):
-        nodo = NodoSalto()
-        nodo.escribirEtiqueta(cad = "final"+str(numIF))
-
-
-    @_('')
-    def emptyFinal(self, t):
-        global numIF, etiqueta
-        etiqueta = "final"+str(numIF)
-        nodo = NodoSalto()
-        nodo.escribirSalto(cad = etiqueta)
-        nodo.escribirEtiqueta(cad = "false"+str(numIF))
-
-    
-    @_('')
-    def emptyIFELSE(self, t):
-       global etiqueta, numIF
-       numIF += 1
-       etiqueta = "false"+str(numIF)
-       nodo = NodoIFELSE()
-       nodo.escribir(cad = "ELSE")
-        
-
-
-    # @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE sentenciaInFunc')
-    # def funcionIf(self, t):
-    #     pass
-
-
-    # @_('IF "(" operacion ")" sentenciaInFunc')
-    # def funcionIf(self, t):
-    #     pass
-
-
-    # @_('IF "(" operacion ")" sentenciaInFunc ELSE "{" entradaInFunc "}"')
-    # def funcionIf(self, t):
-    #     pass
-
-
-    # @_('IF "(" operacion ")" sentenciaInFunc ELSE sentenciaInFunc')
-    # def funcionIf(self, t):
-    #     pass
-
-
-    @_('WHILE "(" operacion ")" "{" entradaInFunc "}"')
-    def bucleWhile(self, t):
         pass
-        
 
-    # @_('WHILE "(" operacion ")" sentenciaInFunc')
-    # def bucleWhile(self, t):
-    #     pass
+
+    @_('emptyFalse ELSE "{" entradaInFunc "}"')
+    def funcionElse(self, t):
+        nodo = NodoSalto()
+        nIf = t[-9]
+        nodo.escribirEtiqueta(cad = "final"+str(nIf))
+
+
+    @_(' ')
+    def funcionElse(self, t):
+        nodo = NodoSalto()
+        nIf = t[-4]
+        nodo.escribirEtiqueta(cad = "false"+str(nIf))
+
+
+    @_(' ')
+    def emptyFalse(self, t):
+        nIf = t[-4]
+        nodo = NodoSalto()
+        nodo.escribirSalto(cad  = "final"+str(nIf))
+        nodo.escribirEtiqueta(cad = "false"+str(nIf))
+
+    @_('')
+    def emptyJumpFalse(self, t):
+        global numIF
+        numIF += 1
+        nodo = NodoIfElseWhile()
+        nodo.escribir(etq = "false"+str(numIF))    
+        return numIF
+            
+
+    @_('WHILE emptyStart "(" operacion ")" emptyWhile "{" entradaInFunc "}"')
+    def bucleWhile(self, t):
+        nWhile = t.emptyStart
+        nodo = NodoSalto()
+        nodo.escribirSalto(cad = "start"+str(nWhile))
+        nodo.escribirEtiqueta(cad = "final"+str(nWhile))
+
+
+    @_('')
+    def emptyStart(self, t):
+        global numWhile
+        numWhile += 1
+        nodo = NodoSalto()
+        nodo.escribirEtiqueta(cad = "start"+str(numWhile))
+        return numWhile
+
+
+    @_('')
+    def emptyWhile(self, t):
+        nWhile = t[-4]
+        nodo = NodoIfElseWhile()
+        nodo.escribir(etq = "final"+str(nWhile))
+
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                       Main                      
 #  └──────────────────────────────────────────────────────────────────────────┘
-
 if __name__ == "__main__":
 
     lexer = ClassLexer()
