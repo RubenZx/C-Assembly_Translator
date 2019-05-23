@@ -24,8 +24,6 @@ class ClassLexer(Lexer):
 		POREQ,
 		DIVEQ,
 		MODEQ,
-        PP,
-        MM,
         STR,
         RETURN
     }
@@ -66,8 +64,7 @@ class ClassLexer(Lexer):
     POREQ = r"\*="
     DIVEQ = r"/="
     MODEQ = r"%="
-    # PP = r"\+\+"
-    # MM = r'--'
+
 
     NUM = r"[0-9]+"
     ID = r"[a-zA-Z_][a-zA-Z0-9_]*"

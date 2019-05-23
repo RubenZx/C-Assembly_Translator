@@ -5,12 +5,16 @@ from lexico import ClassLexer
 tabla = {}          # tabla con los valores del main: funciones: global:
 tabla['global'] = set()
 functionID = None   # tuple para el nombre de la función y el estado de la pila
+callID = None
 inFunction = False  # Variable para saber si estamos en una función o no
+listaparams = []
+numIF = 0
+numWhile = 0
+etiqueta = None
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Nodos                      
 #  └──────────────────────────────────────────────────────────────────────────┘
-
 class Nodo:
     def escribir(self):
         pass
@@ -19,7 +23,7 @@ class Nodo:
 class NodoFuncion(Nodo):
     def escribirPrologo(self, n_funcion):
         global f_salida
-        f_salida.write(".text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\tpushl %ebp\n\tmovl %esp, %ebp")
+        f_salida.write("\n\n.text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\tpushl %ebp\n\tmovl %esp, %ebp")
 
     def escribirEpilogo(self):
         global f_salida
@@ -61,16 +65,53 @@ class NodoID(Nodo):
 class NodoPush(Nodo):
     def escribir(self):
         global f_salida
-        f_salida.write("\n\tpushl %eax;")
+        f_salida.write("\n\tpushl %eax")
 
 
 class NodoSumResProdDiv(Nodo):
     def escribir(self, car):
         if car == "idivl":
-            f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;\n\tcdq;\n\t"+car+" %ebx;")
+            f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\t"+car+" %ebx")
         else:
-            f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;\n\t"+car+" %ebx, %eax;")
+            #if car == "mod":
+            #    f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;")
+            #else:
+            f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\t"+car+" %ebx, %eax")
 
+class nodoCallFun(Nodo):
+    def escribir(self, ID):
+        f_salida.write("\n\tcall " + ID + "\n\taddl $("+str(4*len(tabla[callID]))+"), %esp")
+
+
+class nodoParams(Nodo):
+    def escribir(self, params):
+        for i in reversed(params):
+            print(i)
+            if i in tabla[functionID[0]]:
+                f_salida.write("\n\tmovl "+ str(tabla[functionID[0]][i])+ "(%ebp), %eax\n\tpushl %eax")
+            else:
+                f_salida.write("\n\tmovl $("+str(i)+"), %eax\n\tpushl %eax")
+                    
+
+# NODOS PARA IFELSE
+class NodoIFELSE(Nodo):
+    def escribir(self, cad):
+        global f_salida, numIF, etiqueta
+        if cad == "IF":
+            f_salida.write("\n\tcmpl $0, %eax\n\tje "+etiqueta + "\n\t# code for true:") # salta a la etiqueta true, si no saltará al final
+        else:
+            if cad == "ELSE":
+                f_salida.write("\n\tcmpl $0, %eax\n\tje "+etiqueta)
+                            
+
+class NodoSalto(Nodo):
+    def escribirSalto(self, cad):
+        global f_salida
+        f_salida.write("\n\tjmp "+cad)
+    
+    def escribirEtiqueta(self, cad):
+        global f_salida
+        f_salida.write("\n\n"+cad+":")
 
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -137,7 +178,7 @@ class ClassParser(Parser):
         
     @_('sentencia')
     def sentenciaInFunc(self, t):
-        print("aaaa")
+        pass
 
 
 
@@ -151,8 +192,13 @@ class ClassParser(Parser):
         pass
 
 
+    @_('funcioncall')
+    def sentenciaInFunc(self, t):
+        pass
+
+
     #---------------------------------------------------------------------------
-	# Definiciones
+	# Definiciones✓
     #---------------------------------------------------------------------------
     @_('tipo lista')
     def definicion(self, t):
@@ -175,7 +221,6 @@ class ClassParser(Parser):
 
     @_('ID')
     def elto(self, t):
-        print(t.ID, "\n")
         global inFunction, functionID
         if not(inFunction):
             tabla['global'].add(t.ID)
@@ -220,10 +265,6 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     @_('ID "=" operacion')
     def asignacion(self, t):
-        global tabla
-        print(tabla, "\n")
-        print(functionID, "\n")
-
         nodo = nodoAsignacion()
         nodo.escribir(t.ID)
 
@@ -390,6 +431,10 @@ class ClassParser(Parser):
         nodo = NodoID()
         nodo.escribir(ID = t.ID)
 
+    @_('funcioncall')
+    def brack(self, t):
+        pass
+
 
     @_('')
     def emptyPush(self, t):
@@ -428,7 +473,6 @@ class ClassParser(Parser):
         global functionID, tabla
         functionID[1] += 4
         tabla[functionID[0]][t[-1]] = functionID[1]
-        # return t[-1]
         
 
     @_(' ')
@@ -442,21 +486,17 @@ class ClassParser(Parser):
         # en eax y devolvemos lo que se enceuntra en %eax con ret 
         pass
 
+    
+    @_('')
+    def devolver(self, t):
+        # no hay que hacer nada pq el resultado de la operacion se guarda 
+        # en eax y devolvemos lo que se enceuntra en %eax con ret 
+        pass 
 
-    @_('"," tipo ID emptyFunc2 tiposInpRe')
+
+    @_('"," tipo ID emptyFunc1 tiposInpRe')
     def tiposInpRe(self, t):
-        # global functionID, tabla
-        # funtionID[1] += 4
-        # tabla[functionID[0]][t.ID] = functionID[1]
         pass
-
-
-    @_(' ')
-    def emptyFunc2(self, t):
-        global functionID, tabla
-        funtionID[1] += 4
-        tabla[functionID[0]][t[-1]] = functionID[1]
-        # return t[-1]
 
 
     @_('')
@@ -464,11 +504,16 @@ class ClassParser(Parser):
         pass
 
 
-    @_('ID "(" paramlist ")"')
+    @_('ID emptyCall "(" paramlist ")"')
     def funcioncall(self, t):
         pass
 
+    @_('')
+    def emptyCall(self, t):
+        global callID
+        callID = t[-1]
 
+        
     @_('PRINTF "(" STR restoF ")"')
     def funcioncall(self, t):
         pass
@@ -484,24 +529,24 @@ class ClassParser(Parser):
         pass
 
 
-    @_(' ')
+    @_('')
     def paramlist(self, t):
+        nodo = nodoCallFun()
+        nodo.escribir(ID = callID)
         pass
     
     
     @_('ID')
     def elm(self, t):
-        pass
+        global listaparams
+        listaparams.append(t.ID)
+
 
 
     @_('NUM')
     def elm(self, t):
-        pass
-        
-
-    @_('operacion')
-    def elm(self, t):
-        pass
+        global listaparams
+        listaparams.append(t.NUM)
 
 
     @_('"," elm restoF')
@@ -511,7 +556,12 @@ class ClassParser(Parser):
 
     @_('')
     def restoF(self, t):
-        pass
+        global listaparams
+        nodo = nodoParams()
+        nodo.escribir(params = listaparams)
+        nodo = nodoCallFun()
+        nodo.escribir(ID = callID)
+
     
 
     @_('"," "&" ID restoScan')
@@ -526,35 +576,74 @@ class ClassParser(Parser):
 
     #---------------------------------------------------------------------------
 	# If y While
-    #---------------------------------------------------------------------------
-    @_('IF "(" operacion ")" "{" entradaInFunc "}"')
+    #---------------------------------------------------------------------------   
+    
+    @_('IF "(" operacion ")" emptyIF "{" entradaInFunc "}"')
     def funcionIf(self, t):
-        pass
+        nodo = NodoSalto()
+        nodo.escribirEtiqueta(cad = "final"+str(numIF))
 
 
-    @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE "{" entradaInFunc "}"')
+    @_('')
+    def emptyIF(self, t):
+        global numIF, etiqueta
+        numIF += 1
+        etiqueta = "final"+str(numIF)
+        nodo = NodoIFELSE()
+        nodo.escribir(cad = "IF")
+        
+    
+    #@_('')
+    #def emptyJUMP(self, t):
+    #    global numIF
+    #    nodo = NodoSalto()
+    #    nodo.escribir(cad = "final"+numIF)
+
+    
+
+    @_('IF "(" operacion ")" emptyIFELSE "{" entradaInFunc "}" emptyFinal ELSE "{" entradaInFunc "}"')
     def funcionIf(self, t):
-        pass
+        nodo = NodoSalto()
+        nodo.escribirEtiqueta(cad = "final"+str(numIF))
 
 
-    @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE sentenciaInFunc')
-    def funcionIf(self, t):
-        pass
+    @_('')
+    def emptyFinal(self, t):
+        global numIF, etiqueta
+        etiqueta = "final"+str(numIF)
+        nodo = NodoSalto()
+        nodo.escribirSalto(cad = etiqueta)
+        nodo.escribirEtiqueta(cad = "false"+str(numIF))
+
+    
+    @_('')
+    def emptyIFELSE(self, t):
+       global etiqueta, numIF
+       numIF += 1
+       etiqueta = "false"+str(numIF)
+       nodo = NodoIFELSE()
+       nodo.escribir(cad = "ELSE")
+        
 
 
-    @_('IF "(" operacion ")" sentenciaInFunc')
-    def funcionIf(self, t):
-        pass
+    # @_('IF "(" operacion ")" "{" entradaInFunc "}" ELSE sentenciaInFunc')
+    # def funcionIf(self, t):
+    #     pass
 
 
-    @_('IF "(" operacion ")" sentenciaInFunc ELSE "{" entradaInFunc "}"')
-    def funcionIf(self, t):
-        pass
+    # @_('IF "(" operacion ")" sentenciaInFunc')
+    # def funcionIf(self, t):
+    #     pass
 
 
-    @_('IF "(" operacion ")" sentenciaInFunc ELSE sentenciaInFunc')
-    def funcionIf(self, t):
-        pass
+    # @_('IF "(" operacion ")" sentenciaInFunc ELSE "{" entradaInFunc "}"')
+    # def funcionIf(self, t):
+    #     pass
+
+
+    # @_('IF "(" operacion ")" sentenciaInFunc ELSE sentenciaInFunc')
+    # def funcionIf(self, t):
+    #     pass
 
 
     @_('WHILE "(" operacion ")" "{" entradaInFunc "}"')
@@ -562,9 +651,9 @@ class ClassParser(Parser):
         pass
         
 
-    @_('WHILE "(" operacion ")" sentenciaInFunc')
-    def bucleWhile(self, t):
-        pass
+    # @_('WHILE "(" operacion ")" sentenciaInFunc')
+    # def bucleWhile(self, t):
+    #     pass
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                       Main                      
@@ -584,3 +673,4 @@ if __name__ == "__main__":
     parser.parse(lexer.tokenize(text))
     f_salida.close()
     print(tabla)
+    print(listaparams)
