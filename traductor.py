@@ -1,3 +1,24 @@
+#-------------------------------------------------------------------------------
+# TRABAJO REALIZADO POR LUIS DE CELIS MUÑOZ Y RUBÉN MONTERO DOMÍNGUEZ
+#
+# En el main se encuentran las instrucciones de cómo ejecutar, asún así, está
+# listo para ejecutar con el 'ejemplo1.c' que hemos añadido en la entrega.
+# Nos faltan por implementar las funciones SCANF y PRINTF, la operación Módulo,
+# en cuanto a tipos solo tenemos INT, y nos falta también poder realizar
+# funciones que no devuelvan nada (tipo void). Por lo demás creemos que está 
+# completo. 
+# 
+# También debemos añadir un par de cosas al main, para que sea mucho más cómodo
+# de utilizar nuestro traductor directamente desde la linea de comandos.
+#
+# En el siguiente enlace tenemos lo que hemos ido haciendo del trabajo y la
+# gramática escrita (la cual debemos actualizar a como la tenemos ahora mismo,
+# ya que hemos realizado cambios en ésta en este fichero pero no lo hemos 
+# reflejado en el markdown de nuestra gramática):
+
+# https://github.com/RubenZx/C-Assembly_Translator
+#-------------------------------------------------------------------------------
+
 from sly import Lexer, Parser
 from lexico import ClassLexer
 
@@ -873,7 +894,8 @@ if __name__ == "__main__":
     parser = ClassParser()
 
     # Para probar con distintas entradas se pasa el fichero '.c' que queramos
-    # traducir, y es
+    # traducir en las dos instrucciones siguientes pondremos el nombre del 
+    # que queremos traducir, y el nombre que queremos obtener al traducir
     f_entrada = open('ejemplo1.c', 'r')
     f_salida = open('ejemplo1.s', 'w') 
     
@@ -882,5 +904,8 @@ if __name__ == "__main__":
 
     parser.parse(lexer.tokenize(text))
     f_salida.close()
-    print(tabla)
-    print(listaparams)
+
+    print("------------------------------------------------------------")
+    print(" -> Traducción completada con éxito.")
+    print("------------------------------------------------------------")
+    

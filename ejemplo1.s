@@ -5,7 +5,6 @@
 .type fact, @function
 
 fact:
-
 	# PROLOGO 
 	pushl %ebp
 	movl %esp, %ebp
@@ -59,7 +58,6 @@ final1:
 .type main, @function
 
 main:
-
 	# PROLOGO 
 	pushl %ebp
 	movl %esp, %ebp
@@ -70,6 +68,37 @@ main:
 	call fact
 	addl $(8), %esp
 	movl %eax, -4(%ebp)
+	subl $4, %esp
+	subl $4, %esp
+	movl $(2), %eax
+	movl %eax, -12(%ebp)
+	subl $4, %esp
+	movl $(0), %eax
+	movl %eax, -16(%ebp)
+	movl -12(%ebp), %eax
+	pushl %eax
+	movl -16(%ebp), %eax
+	movl %eax, %ebx
+	popl %eax
+	addl %ebx, %eax
+	pushl %eax
+	movl $(6), %eax
+	movl %eax, %ebx
+	popl %eax
+	imull %ebx, %eax
+	pushl %eax
+	movl $(3), %eax
+	movl %eax, %ebx
+	popl %eax
+	cdq
+	idivl %ebx
+	movl %eax, -8(%ebp)
+	movl $(1), %eax
+	pushl -8(%ebp)
+	movl %eax, %ebx
+	popl %eax
+	addl %ebx, %eax
+	movl %eax, -8(%ebp)
 	movl $(0), %eax
 
 	# EPILOGO 
