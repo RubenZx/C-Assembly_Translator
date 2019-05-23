@@ -4,13 +4,14 @@ from lexico import ClassLexer
 
 tabla = {}          # tabla con los valores del main: funciones: global:
 tabla['global'] = set()
+
 functionID = None   # tuple para el nombre de la función y el estado de la pila
 callID = None
 inFunction = False  # Variable para saber si estamos en una función o no
 listaparams = []
-numIF = 0
+numIF = 0           # Variables de control para las etiquetas de IfElse y While
 numWhile = 0
-nNeg = 0
+nNeg = 0            # Variables de control para las comparaciones
 nDis = 0
 nConj = 0
 nEq = 0
@@ -28,22 +29,25 @@ class Nodo:
         pass
 
 
+# Nodo para escribir prólogo y epílogo
 class NodoFuncion(Nodo):
     def escribirPrologo(self, n_funcion):
         global f_salida
-        f_salida.write("\n\n.text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\tpushl %ebp\n\tmovl %esp, %ebp")
+        f_salida.write("\n\n.text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\t# PROLOGO \n\tpushl %ebp\n\tmovl %esp, %ebp\n")
 
     def escribirEpilogo(self):
         global f_salida
-        f_salida.write("\n\tmovl %ebp, %esp\n\tpopl %ebp\n\tret")    
+        f_salida.write("\n\n\t# EPILOGO \n\tmovl %ebp, %esp\n\tpopl %ebp\n\tret")    
 
 
+# Nodo para reservar espacio en la pila para cada variable en el ámbito que se encuentre
 class NodoDefinicion(Nodo):
     def escribir(self):
         global f_salida
-        f_salida.write("\n\tsubl $4, %esp")     # para escribir cada declaración de una variable
+        f_salida.write("\n\tsubl $4, %esp")     
 
 
+# Nodo para cada asignación en ensamblador dependiendo del ámbito 
 class nodoAsignacion(Nodo):
     def escribir(self, ID):
         global f_salida, tabla, inFunction
@@ -53,12 +57,14 @@ class nodoAsignacion(Nodo):
             f_salida.write("\n\tmovl %eax, "+ str(tabla[functionID[0]][ID]) +"(%ebp)")
 
 
+# Nodo para guardar un valor en %eax
 class NodoNum(Nodo):
     def escribir(self, v):
         global f_salida
         f_salida.write("\n\tmovl $("+str(v)+"), %eax")        
 
 
+# Nodo para mover el ID dependiendo del tipo de variable (static, dynamic parameter, local variable)
 class NodoID(Nodo):
     def escribir(self, ID):
         global inFunction, f_salida, functionID
@@ -70,12 +76,14 @@ class NodoID(Nodo):
             f_salida.write("\n\tmovl " + str(tabla[functionID[0]][ID])+ "(%ebp), %eax")
     
 
+# Nodo para hacer pushl de %eax en la pila
 class NodoPush(Nodo):
     def escribir(self):
         global f_salida
         f_salida.write("\n\tpushl %eax")
 
 
+# Nodo para la suma, la resta y la división, módulo aún no implementado
 class NodoSumResProdDiv(Nodo):
     def escribir(self, car):
         if car == "idivl":
@@ -86,11 +94,14 @@ class NodoSumResProdDiv(Nodo):
             #else:
             f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\t"+car+" %ebx, %eax")
 
+
+# Nodo para las llamadas a función
 class nodoCallFun(Nodo):
     def escribir(self, ID):
         f_salida.write("\n\tcall " + ID + "\n\taddl $("+str(4*len(tabla[callID]))+"), %esp")
 
 
+# Nodo para los parámetros de una función
 class nodoParams(Nodo):
     def escribir(self, params):
         for i in reversed(params):
@@ -101,14 +112,14 @@ class nodoParams(Nodo):
                 f_salida.write("\n\tmovl $("+str(i)+"), %eax\n\tpushl %eax")
                     
 
-# NODOS PARA IFELSE
+# Nodo para IfElse y While, en el primero se realiza la comparación con 0 y el salto comparando
 class NodoIfElseWhile(Nodo):
     def escribir(self, etq):
         global f_salida, numIF
         f_salida.write("\n\tcmpl $0, %eax\n\tje "+etq + "\n\t") 
         
                             
-
+# Nodo para un salto o para poner el nombre de una etiqueta
 class NodoSalto(Nodo):
     def escribirSalto(self, cad):
         global f_salida
@@ -119,6 +130,7 @@ class NodoSalto(Nodo):
         f_salida.write("\n\n"+cad+":")
 
 
+# A continuación los nodos para las operaciones lógicas
 class NodoLogicDisj(Nodo):
     def escribir(self):
         global nDis
@@ -217,6 +229,7 @@ class NodoGreaterThan(Nodo):
         f_salida.write("\nfin_greaterThan"+str(nGt)+":")
 
 
+# Nodos para las asignaciones con operación
 class NodoMasEq(Nodo):
     def escribir(self, ID):
         nodo = NodoSumResProdDiv()
@@ -272,6 +285,7 @@ class NodoDivEq(Nodo):
 #                                     Parser                      
 #  └──────────────────────────────────────────────────────────────────────────┘
 class ClassParser(Parser):
+
     tokens = ClassLexer.tokens
 
     def __init__(self):
@@ -335,7 +349,6 @@ class ClassParser(Parser):
         pass
 
 
-
     @_('funcionIf')
     def sentenciaInFunc(self, t):
         pass
@@ -386,7 +399,6 @@ class ClassParser(Parser):
             nodo.escribir()             # subl $4, %ebp
         
 
-
     @_('ID emptyDef0 "=" operacion')
     def elto(self, t): 
         nodo = nodoAsignacion()
@@ -416,7 +428,7 @@ class ClassParser(Parser):
 
 
 	#---------------------------------------------------------------------------
-	# Operaciones de asignación
+	# Operaciones de asignación✓
     #---------------------------------------------------------------------------
     @_('ID "=" operacion')
     def asignacion(self, t):
@@ -456,13 +468,14 @@ class ClassParser(Parser):
         nodo.escribir(t.ID)
 
 
+    # Aún por implementar
     # @_('ID MODEQ operacion')
     # def asignacion(self, t):
     #     tablaValor[t.ID] %= t.operacion
 
 
     #---------------------------------------------------------------------------
-	# Operaciones aritméticas, relacionales y lógicas
+	# Operaciones aritméticas, relacionales y lógicas✓
     #---------------------------------------------------------------------------
     @_('operacion emptyPush OR bopand')
     def operacion(self, t):
@@ -509,13 +522,13 @@ class ClassParser(Parser):
     def bopeq(self, t):
         pass
 
+
     @_('bopcomp emptyPush "<" exprar')
     def bopcomp(self, t):
         global nLt
         nLt += 1
         nodo = NodoLessThan()
         nodo.escribir()
-
 
 
     @_('bopcomp emptyPush LTEQ exprar')
@@ -576,7 +589,7 @@ class ClassParser(Parser):
         nodo.escribir(car = 'idivl')
 
 
-    # NO SABEMOS SI HACERLO 
+    # Aún por implementar, no lo tenemos muy claro
     #@_('exprprod emptyPush "%" uar')
     #def exprprod(self, t):
     #    return t.exprprod % t.uar
@@ -617,7 +630,6 @@ class ClassParser(Parser):
         nodo.escribirEtiqueta(cad = "fin_negation"+str(nNeg))
         
 
-    
     @_('brack')
     def uar(self, t):
         pass
@@ -651,7 +663,7 @@ class ClassParser(Parser):
     
 
     #---------------------------------------------------------------------------
-    # Functions
+    # Functions✓
     #---------------------------------------------------------------------------
     @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc devolver "}"')
     def functiondef(self, t):   
@@ -694,12 +706,12 @@ class ClassParser(Parser):
         # en eax y devolvemos lo que se enceuntra en %eax con ret 
         pass
 
-    
-    @_('')
-    def devolver(self, t):
+    # Esta regla se haria en el caso de que pongamos que una función pueda ser void
+    #@_('')
+    #def devolver(self, t):
         # no hay que hacer nada pq el resultado de la operacion se guarda 
         # en eax y devolvemos lo que se enceuntra en %eax con ret 
-        pass 
+    #    pass 
 
 
     @_('"," tipo ID emptyFunc1 tiposInpRe')
@@ -721,7 +733,9 @@ class ClassParser(Parser):
         global callID
         callID = t[-1]
 
-        
+    ############################################################################
+    # PRINTF y SCANF aún por implementar, por eso tienen puesto pass
+    ############################################################################
     @_('PRINTF "(" STR restoF ")"')
     def funcioncall(self, t):
         pass
@@ -730,8 +744,9 @@ class ClassParser(Parser):
     @_('SCANF "(" STR "," "&" ID restoScan ")"')
     def funcioncall(self, t):
         pass
-
-
+    ############################################################################
+    
+    
     @_('elm restoF')
     def paramlist(self, t):
         pass
@@ -771,7 +786,9 @@ class ClassParser(Parser):
         nodo.escribir(ID = callID)
 
     
-
+    ############################################################################
+    # Reglas pertenecientes al SCANF, aún por implementar
+    ############################################################################
     @_('"," "&" ID restoScan')
     def restoScan(self, t):
         pass
@@ -780,10 +797,13 @@ class ClassParser(Parser):
     @_('')
     def restoScan(self, t):
         pass
+    ############################################################################
 
 
     #---------------------------------------------------------------------------
 	# IfElse y While
+    # En cuanto al IfElse y While, éstos solo se admiten con el cuerpo entre
+    # llaves, nuestra gramática no admite que no se pongan llaves para traducir
     #---------------------------------------------------------------------------       
     @_('IF "(" operacion ")" emptyJumpFalse "{" entradaInFunc "}"  funcionElse')
     def funcionIf(self, t):
@@ -852,8 +872,10 @@ if __name__ == "__main__":
     lexer = ClassLexer()
     parser = ClassParser()
 
-    f_entrada = open('prueba.c', 'r')
-    f_salida = open('main.s', 'w') 
+    # Para probar con distintas entradas se pasa el fichero '.c' que queramos
+    # traducir, y es
+    f_entrada = open('ejemplo1.c', 'r')
+    f_salida = open('ejemplo1.s', 'w') 
     
     text = f_entrada.read()
     f_entrada.close()
