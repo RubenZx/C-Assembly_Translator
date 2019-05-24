@@ -92,5 +92,3 @@ class ClassLexer(Lexer):
     def error(self, t):
         print("illegal character: ", t.value[0])
         self.index += 1
-
-
