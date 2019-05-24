@@ -68,7 +68,7 @@ class ClassLexer(Lexer):
 
     NUM = r"[0-9]+"
     ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
-    STR = r"\"[.]+\""
+    STR = r'"([A-Za-z_0-9% :=|\\]|\\n)+"'
 
     ID["int"] = INT
 
