@@ -16,46 +16,42 @@ fact:
 	movl %esp, %ebp
 
 	subl $4, %esp
-	movl $(0), %eax
+	movl $(1), %eax
 	movl %eax, -4(%ebp)
+
+start1:
 	movl 8(%ebp), %eax
 	pushl %eax
 	movl $(1), %eax
 	movl %eax, %ebx
 	popl %eax
 	cmpl %eax, %ebx
-	jle lessEqual1
+	jle greaterThan1
+	movl $(1), %eax
+	jmp fin_greaterThan1
+greaterThan1:
 	movl $(0), %eax
-	jmp fin_lessEqual1
-lessEqual1:
-	movl $(1), %eax
-fin_lessEqual1:
+fin_greaterThan1:
 	cmpl $0, %eax
-	je false1
+	je final1
 	
-	movl $(1), %eax
-	movl %eax, -4(%ebp)
-	jmp final1
-
-false1:
-	movl 8(%ebp), %eax
+	movl -4(%ebp), %eax
 	pushl %eax
+	movl 8(%ebp), %eax
+	movl %eax, %ebx
+	popl %eax
+	imull %ebx, %eax
+	movl %eax, -4(%ebp)
+	jmp start1
+
+final1:
 	movl 8(%ebp), %eax
 	pushl %eax
 	movl $(1), %eax
 	movl %eax, %ebx
 	popl %eax
 	subl %ebx, %eax
-	movl %eax, %ebx
-	pushl %ebx
-	call fact
-	addl $(8), %esp
-	movl %eax, %ebx
-	popl %eax
-	imull %ebx, %eax
-	movl %eax, -4(%ebp)
-
-final1:
+	movl %eax, 8(%ebp)
 	movl -4(%ebp), %eax
 
 	# EPILOGO 

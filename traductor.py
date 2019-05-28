@@ -3,7 +3,7 @@
 #
 # En el main se encuentran las instrucciones de cómo ejecutar, asún así, está
 # listo para ejecutar con el 'ejemplo1.c' que hemos añadido en la entrega.
-# Nos faltan por implementar las funciones SCANF y PRINTF, la operación Módulo,
+# Nos faltan por implementar la operación Módulo,
 # en cuanto a tipos solo tenemos INT, y nos falta también poder realizar
 # funciones que no devuelvan nada (tipo void). Por lo demás creemos que está 
 # completo. 
@@ -138,8 +138,11 @@ class nodoParams(Nodo):
                 if i in tabla[functionID[0]]:
                     f_salida.write("\n\tmovl "+ str(tabla[functionID[0]][i])+ "(%ebp), %eax\n\tpushl %eax")
                 else:
-                    print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
-                    exit(0)
+                    if i == "op":
+                        f_salida.write("\n\tpushl %ebx")
+                    else:
+                        print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                        exit(0)
                     
 
 # Nodo para IfElse y While, en el primero se realiza la comparación con 0 y el salto comparando
@@ -323,17 +326,30 @@ class NodoPrintf(Nodo):
         
 
 class NodoScanf(Nodo):
-        def escribir(self, ID):
-            global f_salida, tabla
+    def escribir(self, cad):
+        global nParams
+        ID = tablaString[cad]
+        nParams *= 4
+        f_salida.write("\n\tpushl $s"+str(ID)+"\t\t"+"# $s"+str(ID)+" = "+cad+"\n\tcall scanf\n\taddl $("+str(nParams)+"), %esp")
+        nParams = 1
+        
+    def escribirParams(self, params):
+        global f_salida, tabla
+        for ID in reversed(params): 
             if ID in tabla['global']:
                 f_salida.write("\n\tpushl $"+ ID + ", %eax")
             else:
                 if ID in tabla[functionID[0]]:
-                    f_salida.write("\n\leal "+ tabla[functionID[0]][ID] + "(%ebp), %eax\n\tpushl %eax")
+                    f_salida.write("\n\tleal "+ str(tabla[functionID[0]][ID]) + "(%ebp), %eax\n\tpushl %eax")
                 else:
                     print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
                     exit(0)
-                    
+                
+
+class NodoMovl(Nodo):
+    def escribir(self):
+        f_salida.write("\n\tmovl %eax, %ebx")
+
 
 def agregarStrings(cad):
     global f_salida
@@ -813,11 +829,15 @@ class ClassParser(Parser):
         nodo.escribir(cad = t.STR)
 
     
-                    
-
-    @_('SCANF emptyCall "(" STR "," "&" ID restoScan ")"')
+    @_('SCANF emptyCall "(" STR "," "&" ID emptyRestoScan restoScan ")"')
     def funcioncall(self, t):
-        pass
+        global listaparams
+        nodo = NodoScanf()
+        nodo.escribirParams(params = listaparams)
+        listaparams = [] 
+        nodo.escribir(cad = t.STR)
+        
+
     ############################################################################
     
     
@@ -845,6 +865,14 @@ class ClassParser(Parser):
         listaparams.append(t.NUM)
 
 
+    @_('operacion')
+    def elm(self, t):
+        global listaparams
+        nodo = NodoMovl()
+        nodo.escribir()
+        listaparams.append("op")
+
+
     @_('"," elm restoF')
     def restoF(self, t):
         global nParams
@@ -856,30 +884,27 @@ class ClassParser(Parser):
         global listaparams
         nodo = nodoParams()
         nodo.escribir(params = listaparams)
+        listaparams = []
         
 
-    
-    ############################################################################
-    # Reglas pertenecientes al SCANF, aún por implementar
-    ############################################################################
     @_('"," "&" ID emptyRestoScan restoScan')
+    def restoScan(self, t):
+        pass
+
+
+    @_('')
     def restoScan(self, t):
         pass
 
     @_('')
     def emptyRestoScan(self, t):
-        global listaparams
+        global listaparams, nParams
+        nParams += 1
         listaparams.append(t[-1])
     
 
-    @_('')
-    def restoScan(self, t):
-        global listaparams
-        nodo = nodoParams()
-        nodo.escribir(params = listaparams)
-        pass
-    ############################################################################
-
+    
+        
 
     #---------------------------------------------------------------------------
 	# IfElse y While
@@ -956,6 +981,7 @@ if __name__ == "__main__":
     params = sys.argv
     linea = "------------------------------------------------------------"
     CRED = '\033[91m'
+    CGREEN = '\033[92m'
     CEND = '\033[0m'
 
     if(len(params) != 2):
@@ -980,5 +1006,5 @@ if __name__ == "__main__":
         agregarStrings(cad = cad)
                 
 
-        print("\n"+linea+"\n Traducción completada con éxito\n"+linea)
+        print("\n"+linea+CGREEN+"\n Traducción completada con éxito\n"+ CEND+linea)
         

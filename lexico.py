@@ -21,11 +21,11 @@ class ClassLexer(Lexer):
         NEQ,
         GTEQ,
         LTEQ,
-	MASEQ,
-	MENOSEQ,
-	POREQ,
-	DIVEQ,
-	MODEQ,
+        MASEQ,
+        MENOSEQ,
+        POREQ,
+        DIVEQ,
+        MODEQ,
         STR,
         RETURN
     }
@@ -52,6 +52,7 @@ class ClassLexer(Lexer):
         ">",
         "<",
         "%",
+        "&",
         "\""
     }
 

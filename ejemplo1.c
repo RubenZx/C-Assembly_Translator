@@ -1,27 +1,20 @@
-int x;
-
-int fact(int n) {
-
-    int acum;
-    acum = 1;
-
-    while (n > 1) {
-        acum = acum * n;
+int fact(int n)
+{
+    int aux = 0;
+    if (n <= 1){
+        aux = 1;
+    }else{
+        aux = n * fact(n-1);
     }
-    n = n - 1;
-    
-    return acum;
-} 
+    return aux;
+}
 
 int numero;
 
 int main() {
-    
-    int factorial_6 = fact(6);
-    int a, b = 2, c = 0;
 
-    a = (b + c) * 6 / 3;
-    a += 1;
-    
+    printf("Dame un entero : ");
+    scanf("%d", &numero);
+    printf("El factorial = %d\n", fact(numero));
     return 0;
 }
