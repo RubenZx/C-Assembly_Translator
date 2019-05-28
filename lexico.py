@@ -1,8 +1,10 @@
 from sly import Lexer
 
+tablaString = {}
+IDstr = 0
 
 class ClassLexer(Lexer):
-
+    
     # Tokenlist
     tokens = {
         ID,
@@ -68,8 +70,7 @@ class ClassLexer(Lexer):
 
     NUM = r"[0-9]+"
     ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
-    STR = r"\"[.]+\""
-
+    STR = r'".*"'
     ID["int"] = INT
 
     # Special cases
@@ -84,6 +85,19 @@ class ClassLexer(Lexer):
     def NUM(self, t):
         t.value = int(t.value)
         return t
+    
+    @_(r'".*"')
+    def STR(self, t):
+        global IDstr
+        t.value = t.value[1:-1] 
+        try:
+            tablaString[t.value] = IDstr
+            IDstr += 1
+        except Exception as e:
+            pass
+        return t
+
+
 
     @_(r"\n+")
     def ignore_newline(self, t):

@@ -18,9 +18,10 @@
 
 # https://github.com/RubenZx/C-Assembly_Translator
 #-------------------------------------------------------------------------------
+import sys
 
 from sly import Lexer, Parser
-from lexico import ClassLexer
+from lexico import ClassLexer, tablaString
 
 
 tabla = {}          # tabla con los valores del main: funciones: global:
@@ -41,6 +42,7 @@ nLe = 0
 nLt = 0
 nGe = 0
 nGt = 0
+nParams = 1    # Variable para saber cuantos params le pasamos a printf
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Nodos                      
@@ -93,8 +95,12 @@ class NodoID(Nodo):
             # ID global
             f_salida.write("\n\tmovl "+ID +", %eax")
         else:
-            # ID de parametros o de variable local a una función
-            f_salida.write("\n\tmovl " + str(tabla[functionID[0]][ID])+ "(%ebp), %eax")
+            if ID in tabla[functionID[0]]:
+                # ID de parametros o de variable local a una función
+                f_salida.write("\n\tmovl " + str(tabla[functionID[0]][ID])+ "(%ebp), %eax")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
     
 
 # Nodo para hacer pushl de %eax en la pila
@@ -126,11 +132,14 @@ class nodoCallFun(Nodo):
 class nodoParams(Nodo):
     def escribir(self, params):
         for i in reversed(params):
-            print(i)
-            if i in tabla[functionID[0]]:
-                f_salida.write("\n\tmovl "+ str(tabla[functionID[0]][i])+ "(%ebp), %eax\n\tpushl %eax")
-            else:
+            if i in tabla['global']:
                 f_salida.write("\n\tmovl $("+str(i)+"), %eax\n\tpushl %eax")
+            else:
+                if i in tabla[functionID[0]]:
+                    f_salida.write("\n\tmovl "+ str(tabla[functionID[0]][i])+ "(%ebp), %eax\n\tpushl %eax")
+                else:
+                    print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                    exit(0)
                     
 
 # Nodo para IfElse y While, en el primero se realiza la comparación con 0 y el salto comparando
@@ -301,6 +310,45 @@ class NodoDivEq(Nodo):
             f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
 
         nodo.escribir(car = "idivl")
+
+
+# Nodos para printf y scanf
+class NodoPrintf(Nodo):
+    def escribir(self, cad):
+        global nParams
+        ID = tablaString[cad]
+        nParams *= 4
+        f_salida.write("\n\tpushl $s"+str(ID)+"\t\t"+"# $s"+str(ID)+" = "+cad+"\n\tcall printf\n\taddl $("+str(nParams)+"), %esp")
+        nParams = 1    
+        
+
+class NodoScanf(Nodo):
+        def escribir(self, ID):
+            global f_salida, tabla
+            if ID in tabla['global']:
+                f_salida.write("\n\tpushl $"+ ID + ", %eax")
+            else:
+                if ID in tabla[functionID[0]]:
+                    f_salida.write("\n\leal "+ tabla[functionID[0]][ID] + "(%ebp), %eax\n\tpushl %eax")
+                else:
+                    print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                    exit(0)
+                    
+
+def agregarStrings(cad):
+    global f_salida
+    texto = ".section .rodata"
+    for i in tablaString:
+        texto += "\n.LC"+str(tablaString[i])+":\n\t.string \"" + i + "\""
+    
+    f_salida = open(cad, "r+")
+    texto += f_salida.read()
+    f_salida.close()
+
+    f_salida = open(cad, "w")
+    f_salida.write(texto)
+    f_salida.close()
+
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Parser                      
@@ -747,22 +795,27 @@ class ClassParser(Parser):
 
     @_('ID emptyCall "(" paramlist ")"')
     def funcioncall(self, t):
-        pass
+        nodo = nodoCallFun()
+        nodo.escribir(ID = callID)
+        
 
-    @_('')
-    def emptyCall(self, t):
+    @_(' ')
+    def emptyCall(self, t): 
         global callID
         callID = t[-1]
 
     ############################################################################
-    # PRINTF y SCANF aún por implementar, por eso tienen puesto pass
+    # PRINTF y SCANF 
     ############################################################################
     @_('PRINTF "(" STR restoF ")"')
     def funcioncall(self, t):
-        pass
+        nodo = NodoPrintf()
+        nodo.escribir(cad = t.STR)
 
+    
+                    
 
-    @_('SCANF "(" STR "," "&" ID restoScan ")"')
+    @_('SCANF emptyCall "(" STR "," "&" ID restoScan ")"')
     def funcioncall(self, t):
         pass
     ############################################################################
@@ -786,7 +839,6 @@ class ClassParser(Parser):
         listaparams.append(t.ID)
 
 
-
     @_('NUM')
     def elm(self, t):
         global listaparams
@@ -795,7 +847,8 @@ class ClassParser(Parser):
 
     @_('"," elm restoF')
     def restoF(self, t):
-        pass
+        global nParams
+        nParams += 1
 
 
     @_('')
@@ -803,20 +856,27 @@ class ClassParser(Parser):
         global listaparams
         nodo = nodoParams()
         nodo.escribir(params = listaparams)
-        nodo = nodoCallFun()
-        nodo.escribir(ID = callID)
+        
 
     
     ############################################################################
     # Reglas pertenecientes al SCANF, aún por implementar
     ############################################################################
-    @_('"," "&" ID restoScan')
+    @_('"," "&" ID emptyRestoScan restoScan')
     def restoScan(self, t):
         pass
+
+    @_('')
+    def emptyRestoScan(self, t):
+        global listaparams
+        listaparams.append(t[-1])
     
 
     @_('')
     def restoScan(self, t):
+        global listaparams
+        nodo = nodoParams()
+        nodo.escribir(params = listaparams)
         pass
     ############################################################################
 
@@ -893,19 +953,32 @@ if __name__ == "__main__":
     lexer = ClassLexer()
     parser = ClassParser()
 
-    # Para probar con distintas entradas se pasa el fichero '.c' que queramos
-    # traducir en las dos instrucciones siguientes pondremos el nombre del 
-    # que queremos traducir, y el nombre que queremos obtener al traducir
-    f_entrada = open('ejemplo1.c', 'r')
-    f_salida = open('ejemplo1.s', 'w') 
-    
-    text = f_entrada.read()
-    f_entrada.close()
+    params = sys.argv
+    linea = "------------------------------------------------------------"
+    CRED = '\033[91m'
+    CEND = '\033[0m'
 
-    parser.parse(lexer.tokenize(text))
-    f_salida.close()
+    if(len(params) != 2):
+        print("\n"+linea+CRED+"\n[Error]"+CEND+" Parámetros incorrectos\nIntroduzca el nombre del fichero a traducir como parámetro\n\nEj: python traductor.py mifichero.c\n"+linea)
+    else:
+        cad = params[1]
+        try: 
+            f_entrada = open(cad, 'r')
+        except Exception as e:
+            print("\n"+linea+CRED+"\n[Error]"+CEND+" No se encuentra el fichero: "+cad+"\n"+linea) 
+            exit(0)
 
-    print("------------------------------------------------------------")
-    print(" -> Traducción completada con éxito.")
-    print("------------------------------------------------------------")
-    
+        cad = cad[:-1] + 's'
+        f_salida = open(cad, 'w') 
+        
+        text = f_entrada.read()
+        f_entrada.close()
+
+        parser.parse(lexer.tokenize(text))
+        f_salida.close()
+
+        agregarStrings(cad = cad)
+                
+
+        print("\n"+linea+"\n Traducción completada con éxito\n"+linea)
+        
