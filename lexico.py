@@ -21,11 +21,11 @@ class ClassLexer(Lexer):
         NEQ,
         GTEQ,
         LTEQ,
-		MASEQ,
-		MENOSEQ,
-		POREQ,
-		DIVEQ,
-		MODEQ,
+	MASEQ,
+	MENOSEQ,
+	POREQ,
+	DIVEQ,
+	MODEQ,
         STR,
         RETURN
     }
@@ -70,12 +70,8 @@ class ClassLexer(Lexer):
 
     NUM = r"[0-9]+"
     ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
-<<<<<<< HEAD
     STR = r'".*"'
-=======
-    STR = r'"([A-Za-z_0-9% :=|\\]|\\n)+"'
 
->>>>>>> a9e53253faf9d529d09172beecfff296af558fc8
     ID["int"] = INT
 
     # Special cases
@@ -101,7 +97,6 @@ class ClassLexer(Lexer):
         except Exception as e:
             pass
         return t
-
 
 
     @_(r"\n+")
