@@ -15,6 +15,14 @@
 - Function *calls* and *definition*
 - *Local* and *global* variables
 
+### Example
+
+```C
+int main(){
+    printf("Hola mundo!");
+    return 0;
+}
+```
 ### How to use:
 &nbsp;&nbsp;&nbsp;&nbsp;You have to give as a parameter the name of the file in C that you want to translate, like this:
 ```
