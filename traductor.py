@@ -1,14 +1,8 @@
 #-------------------------------------------------------------------------------
 # TRABAJO REALIZADO POR LUIS DE CELIS MUÑOZ Y RUBÉN MONTERO DOMÍNGUEZ
 #
-# En cuanto a tipos solo tenemos INT, y nos falta también poder realizar
-# funciones que no devuelvan nada (tipo void). Por lo demás creemos que está 
-# completo. 
-#
-# En el siguiente enlace tenemos lo que hemos ido haciendo del trabajo y la
-# gramática escrita (la cual debemos actualizar a como la tenemos ahora mismo,
-# ya que hemos realizado cambios en ésta en este fichero pero no lo hemos 
-# reflejado en el markdown de nuestra gramática):
+# In the following link, we have our work updated with some explanations, use
+# instructions and our grammar
 #
 # https://github.com/RubenZx/C-Assembly_Translator
 #-------------------------------------------------------------------------------
@@ -38,6 +32,7 @@ nGe = 0
 nGt = 0
 nReturn = 0
 nParams = 1    # Variable para saber cuantos params le pasamos a printf
+
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
 #                                     Nodos                      
@@ -112,7 +107,7 @@ class NodoSumResProdDiv(Nodo):
             f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\t"+car+" %ebx")
         else:
             if car == "mod":
-                f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\t"+car+" %ebx\n\tmovl %edx, %eax")
+                f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\tidivl %ebx\n\tmovl %edx, %eax")
             else:
                 f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\t"+car+" %ebx, %eax")
 
@@ -265,8 +260,11 @@ class NodoMasEq(Nodo):
             # ID global
             f_salida.write("\n\tpushl "+ID)
         else:
-            # ID de parametros o de variable local a una función
-            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            if ID in tabla[functionID[0]]:
+                f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
 
         nodo.escribir(car = "addl")
         
@@ -278,8 +276,11 @@ class NodoMenosEq(Nodo):
             # ID global
             f_salida.write("\n\tpushl "+ID)
         else:
-            # ID de parametros o de variable local a una función
-            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            if ID in tabla[functionID[0]]:
+                f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
 
         nodo.escribir(car = "subl")
 
@@ -291,8 +292,11 @@ class NodoPorEq(Nodo):
             # ID global
             f_salida.write("\n\tpushl "+ID)
         else:
-            # ID de parametros o de variable local a una función
-            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            if ID in tabla[functionID[0]]:
+                f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
 
         nodo.escribir(car = "imull")
 
@@ -304,10 +308,29 @@ class NodoDivEq(Nodo):
             # ID global
             f_salida.write("\n\tpushl "+ID)
         else:
-            # ID de parametros o de variable local a una función
-            f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            if ID in tabla[functionID[0]]:
+                f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
 
         nodo.escribir(car = "idivl")
+
+
+class NodoModEq(Nodo):
+    def escribir(self, ID):
+        nodo = NodoSumResProdDiv()
+        if ID in tabla['global']:
+            # ID global
+            f_salida.write("\n\tpushl "+ID)
+        else:
+            if ID in tabla[functionID[0]]:
+                f_salida.write("\n\tpushl " + str(tabla[functionID[0]][ID])+ "(%ebp)")
+            else:
+                print("\n"+linea+CRED+"\n[Error]"+CEND+" Variable no declarada. \nParando la traduccion. . . "+cad+"\n"+linea) 
+                exit(0)
+
+        nodo.escribir(car = "mod")
 
 
 # Nodos para printf y scanf
@@ -552,10 +575,12 @@ class ClassParser(Parser):
         nodo.escribir(t.ID)
 
 
-    # Aún por implementar
-    # @_('ID MODEQ operacion')
-    # def asignacion(self, t):
-    #     tablaValor[t.ID] %= t.operacion
+    @_('ID MODEQ operacion')
+    def asignacion(self, t):
+        nodo = NodoModEq()
+        nodo.escribir(ID = t.ID)
+        nodo = nodoAsignacion()
+        nodo.escribir(t.ID)
 
 
     #---------------------------------------------------------------------------
@@ -567,6 +592,7 @@ class ClassParser(Parser):
         nDis += 1
         nodo = NodoLogicDisj()
         nodo.escribir()
+        
 
     @_('bopand')
     def operacion(self, t):
@@ -678,7 +704,6 @@ class ClassParser(Parser):
         nodo = NodoSumResProdDiv()
         nodo.escribir(car = 'mod')
 
-
     
     @_('uar')
     def exprprod(self, t):
@@ -736,6 +761,7 @@ class ClassParser(Parser):
         nodo = NodoID()
         nodo.escribir(ID = t.ID)
 
+
     @_('funcioncall')
     def brack(self, t):
         pass
@@ -792,14 +818,6 @@ class ClassParser(Parser):
         nodo = NodoSalto()
         etiqueta = "return" + str(functionID[3])
         nodo.escribirSalto(cad = etiqueta)
-
-
-    # Esta regla se haria en el caso de que pongamos que una función pueda ser void
-    #@_('')
-    #def devolver(self, t):
-        # no hay que hacer nada pq el resultado de la operacion se guarda 
-        # en eax y devolvemos lo que se enceuntra en %eax con ret 
-    #    pass 
 
 
     @_('"," tipo ID emptyFunc1 tiposInpRe')

@@ -1,10 +1,10 @@
 .section .rodata
 .LC0:
-	.string "Dame un entero : "
+	.string "Enter a number: "
 .LC1:
 	.string "%d"
 .LC2:
-	.string "El factorial = %d\n"
+	.string "Factorial = %d\n"
 
 .text
 .globl fact
@@ -15,9 +15,6 @@ fact:
 	pushl %ebp
 	movl %esp, %ebp
 
-	subl $4, %esp
-	movl $(0), %eax
-	movl %eax, -4(%ebp)
 	movl 8(%ebp), %eax
 	pushl %eax
 	movl $(1), %eax
@@ -51,7 +48,7 @@ false1:
 	movl %eax, %ebx
 	pushl %ebx
 	call fact
-	addl $(8), %esp
+	addl $(4), %esp
 	movl %eax, %ebx
 	popl %eax
 	imull %ebx, %eax
@@ -74,21 +71,21 @@ main:
 	pushl %ebp
 	movl %esp, %ebp
 
-	pushl $s0		# $s0 = Dame un entero : 
+	pushl $s0		# $s0 = Enter a number: 
 	call printf
 	addl $(4), %esp
-	pushl $numero, %eax
+	pushl $numb, %eax
 	pushl $s1		# $s1 = %d
 	call scanf
 	addl $(8), %esp
-	movl numero, %eax
+	movl numb, %eax
 	movl %eax, %ebx
 	pushl %ebx
 	call fact
-	addl $(8), %esp
+	addl $(4), %esp
 	movl %eax, %ebx
 	pushl %ebx
-	pushl $s2		# $s2 = El factorial = %d\n
+	pushl $s2		# $s2 = Factorial = %d\n
 	call printf
 	addl $(8), %esp
 	movl $(0), %eax

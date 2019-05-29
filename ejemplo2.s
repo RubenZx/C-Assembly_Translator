@@ -1,6 +1,6 @@
 .section .rodata
 .LC0:
-	.string "Dame un entero : "
+	.string "Dame un entero: "
 .LC1:
 	.string "%d"
 .LC2:
@@ -29,8 +29,10 @@ start1:
 	jle greaterThan1
 	movl $(1), %eax
 	jmp fin_greaterThan1
+
 greaterThan1:
 	movl $(0), %eax
+
 fin_greaterThan1:
 	cmpl $0, %eax
 	je final1
@@ -42,18 +44,19 @@ fin_greaterThan1:
 	popl %eax
 	imull %ebx, %eax
 	movl %eax, -4(%ebp)
-	jmp start1
-
-final1:
-	movl 8(%ebp), %eax
-	pushl %eax
 	movl $(1), %eax
+	pushl 8(%ebp)
 	movl %eax, %ebx
 	popl %eax
 	subl %ebx, %eax
 	movl %eax, 8(%ebp)
-	movl -4(%ebp), %eax
+	jmp start1
 
+final1:
+	movl -4(%ebp), %eax
+	jmp return1
+
+return1:
 	# EPILOGO 
 	movl %ebp, %esp
 	popl %ebp
@@ -68,7 +71,7 @@ main:
 	pushl %ebp
 	movl %esp, %ebp
 
-	pushl $s0		# $s0 = Dame un entero : 
+	pushl $s0		# $s0 = Dame un entero: 
 	call printf
 	addl $(4), %esp
 	pushl $numero, %eax
@@ -86,7 +89,9 @@ main:
 	call printf
 	addl $(8), %esp
 	movl $(0), %eax
+	jmp return2
 
+return2:
 	# EPILOGO 
 	movl %ebp, %esp
 	popl %ebp

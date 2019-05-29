@@ -1,22 +1,21 @@
+
 int fact(int n)
 {
-    int aux = 0;
     if (n <= 1){
         return 1;
     }
     else{
         return n * fact(n-1);
     }
+}
+
+int numb;
+
+int main()
+{
+    printf("Enter a number: ");
+    scanf("%d", &numb);
+    printf("Factorial = %d\n", fact(numb));
     
-
-}
-
-int numero;
-
-int main() {
-
-    printf("Dame un entero : ");
-    scanf("%d", &numero);
-    printf("El factorial = %d\n", fact(numero));
     return 0;
-}
+} 
