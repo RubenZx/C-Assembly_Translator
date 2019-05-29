@@ -42,6 +42,7 @@ nLe = 0
 nLt = 0
 nGe = 0
 nGt = 0
+nReturn = 0
 nParams = 1    # Variable para saber cuantos params le pasamos a printf
 
 #   ┌──────────────────────────────────────────────────────────────────────────┐
@@ -58,9 +59,9 @@ class NodoFuncion(Nodo):
         global f_salida
         f_salida.write("\n\n.text\n.globl "+n_funcion+"\n.type "+n_funcion+", @function\n\n"+n_funcion+":\n\t# PROLOGO \n\tpushl %ebp\n\tmovl %esp, %ebp\n")
 
-    def escribirEpilogo(self):
+    def escribirEpilogo(self, n_return):
         global f_salida
-        f_salida.write("\n\n\t# EPILOGO \n\tmovl %ebp, %esp\n\tpopl %ebp\n\tret")    
+        f_salida.write("\n\nreturn"+str(n_return)+":\n\t# EPILOGO \n\tmovl %ebp, %esp\n\tpopl %ebp\n\tret")    
 
 
 # Nodo para reservar espacio en la pila para cada variable en el ámbito que se encuentre
@@ -116,10 +117,10 @@ class NodoSumResProdDiv(Nodo):
         if car == "idivl":
             f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\t"+car+" %ebx")
         else:
-            #if car == "mod":
-            #    f_salida.write("\n\tmovl %eax, %ebx;\n\tpopl %eax;")
-            #else:
-            f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\t"+car+" %ebx, %eax")
+            if car == "mod":
+                f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcdq\n\t"+car+" %ebx\n\tmovl %edx, %eax")
+            else:
+                f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\t"+car+" %ebx, %eax")
 
 
 # Nodo para las llamadas a función
@@ -170,14 +171,14 @@ class NodoLogicDisj(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl $(0), %eax\n\tje disjoin"+str(nDis))
         f_salida.write("\n\tmovl $(1), %eax")
         f_salida.write("\n\tjmp fin_disjoin"+str(nDis))
-        f_salida.write("\ndisjoin"+str(nDis)+":")
+        f_salida.write("\n\ndisjoin"+str(nDis)+":")
         nDis +=1
         f_salida.write("\n\tcmp $(0), %ebx\n\tje disjoin"+str(nDis))
         f_salida.write("\n\tmovl $(1), %eax")
         f_salida.write("\n\tjmp fin_disjoin"+str(nDis))
-        f_salida.write("\ndisjoin"+str(nDis)+":")
+        f_salida.write("\n\ndisjoin"+str(nDis)+":")
         f_salida.write("\n\tmovl $(0), %eax")  
-        f_salida.write("\nfin_disjoin"+str(nDis-1)+":")
+        f_salida.write("\n\nfin_disjoin"+str(nDis-1)+":")
 
 
 class NodoLogicConj(Nodo):
@@ -186,14 +187,14 @@ class NodoLogicConj(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl $(0), %eax\n\tjne conjunction"+str(nConj))
         f_salida.write("\n\tmovl $(0), %eax")
         f_salida.write("\n\tjmp fin_conjunction"+str(nConj))
-        f_salida.write("\nconjunction"+str(nConj)+":")
+        f_salida.write("\n\nconjunction"+str(nConj)+":")
         nConj +=1
         f_salida.write("\n\tcmp $(0), %ebx\n\tjne conjunction"+str(nConj))
         f_salida.write("\n\tmovl $(0), %eax")
         f_salida.write("\n\tjmp fin_conjunction"+str(nConj))
-        f_salida.write("\nconjunction"+str(nConj)+":")
+        f_salida.write("\n\nconjunction"+str(nConj)+":")
         f_salida.write("\n\tmovl $(1), %eax")  
-        f_salida.write("\nfin_conjunction"+str(nConj-1)+":")
+        f_salida.write("\n\nfin_conjunction"+str(nConj-1)+":")
 
 
 class NodoEqual(Nodo):
@@ -202,9 +203,9 @@ class NodoEqual(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjne equal"+str(nEq))
         f_salida.write("\n\tmovl $(1), %eax")
         f_salida.write("\n\tjmp fin_equal"+str(nEq))
-        f_salida.write("\nequal"+str(nEq)+":")
+        f_salida.write("\n\nequal"+str(nEq)+":")
         f_salida.write("\n\tmovl $(0), %eax")
-        f_salida.write("\nfin_equal"+str(nEq)+":")
+        f_salida.write("\n\nfin_equal"+str(nEq)+":")
 
 
 class NodoNotEqual(Nodo):
@@ -213,9 +214,9 @@ class NodoNotEqual(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjne notEqual"+str(nNeq))
         f_salida.write("\n\tmovl $(0), %eax")
         f_salida.write("\n\tjmp fin_notEqual"+str(nNeq))
-        f_salida.write("\nnotEqual"+str(nNeq)+":")
+        f_salida.write("\n\nnotEqual"+str(nNeq)+":")
         f_salida.write("\n\tmovl $(1), %eax")
-        f_salida.write("\nfin_notEqual"+str(nNeq)+":")
+        f_salida.write("\n\nfin_notEqual"+str(nNeq)+":")
 
         
 class NodoLessEq(Nodo):
@@ -224,9 +225,9 @@ class NodoLessEq(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjle lessEqual"+str(nLe))
         f_salida.write("\n\tmovl $(0), %eax")
         f_salida.write("\n\tjmp fin_lessEqual"+str(nLe))
-        f_salida.write("\nlessEqual"+str(nLe)+":")
+        f_salida.write("\n\nlessEqual"+str(nLe)+":")
         f_salida.write("\n\tmovl $(1), %eax")
-        f_salida.write("\nfin_lessEqual"+str(nLe)+":")
+        f_salida.write("\n\nfin_lessEqual"+str(nLe)+":")
 
 
 class NodoLessThan(Nodo):
@@ -235,9 +236,9 @@ class NodoLessThan(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjbe lessThan"+str(nLt))
         f_salida.write("\n\tmovl $(1), %eax")
         f_salida.write("\n\tjmp fin_lessThan"+str(nLt))
-        f_salida.write("\nlessThan"+str(nLt)+":")
+        f_salida.write("\n\nlessThan"+str(nLt)+":")
         f_salida.write("\n\tmovl $(0), %eax")
-        f_salida.write("\nfin_lessThan"+str(nLt)+":")
+        f_salida.write("\n\nfin_lessThan"+str(nLt)+":")
 
 
 class NodoGreaterEq(Nodo):
@@ -246,9 +247,9 @@ class NodoGreaterEq(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjbe greaterEq"+str(nGe))
         f_salida.write("\n\tmovl $(0), %eax")
         f_salida.write("\n\tjmp fin_greaterEq"+str(nGe))
-        f_salida.write("\ngreaterEq"+str(nGe)+":")
+        f_salida.write("\n\ngreaterEq"+str(nGe)+":")
         f_salida.write("\n\tmovl $(1), %eax")
-        f_salida.write("\nfin_greaterEq"+str(nGe)+":")
+        f_salida.write("\n\nfin_greaterEq"+str(nGe)+":")
 
 
 class NodoGreaterThan(Nodo):
@@ -257,9 +258,9 @@ class NodoGreaterThan(Nodo):
         f_salida.write("\n\tmovl %eax, %ebx\n\tpopl %eax\n\tcmpl %eax, %ebx\n\tjle greaterThan"+str(nGt))
         f_salida.write("\n\tmovl $(1), %eax")
         f_salida.write("\n\tjmp fin_greaterThan"+str(nGt))
-        f_salida.write("\ngreaterThan"+str(nGt)+":")
+        f_salida.write("\n\ngreaterThan"+str(nGt)+":")
         f_salida.write("\n\tmovl $(0), %eax")
-        f_salida.write("\nfin_greaterThan"+str(nGt)+":")
+        f_salida.write("\n\nfin_greaterThan"+str(nGt)+":")
 
 
 # Nodos para las asignaciones con operación
@@ -423,6 +424,9 @@ class ClassParser(Parser):
     def entradaInFunc(self, t):
         pass
 
+    @_('devolver entradaInFunc')
+    def entradaInFunc(self, t):
+        pass
 
     @_('')
     def entradaInFunc(self, t):
@@ -674,10 +678,11 @@ class ClassParser(Parser):
         nodo.escribir(car = 'idivl')
 
 
-    # Aún por implementar, no lo tenemos muy claro
-    #@_('exprprod emptyPush "%" uar')
-    #def exprprod(self, t):
-    #    return t.exprprod % t.uar
+    @_('exprprod emptyPush "%" uar')
+    def exprprod(self, t):
+        nodo = NodoSumResProdDiv()
+        nodo.escribir(car = 'mod')
+
 
     
     @_('uar')
@@ -750,19 +755,20 @@ class ClassParser(Parser):
     #---------------------------------------------------------------------------
     # Functions✓
     #---------------------------------------------------------------------------
-    @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc devolver "}"')
+    @_('tipo ID emptyFunc0 "(" tiposInp ")" "{" entradaInFunc "}"')
     def functiondef(self, t):   
         global inFunction
         nodo = NodoFuncion()
-        nodo.escribirEpilogo()
+        nodo.escribirEpilogo(n_return = functionID[3])
         inFunction = False
 
 
     @_(' ')
     def emptyFunc0(self, t):
-        global functionID, tabla, inFunction
+        global functionID, tabla, inFunction, nReturn
         inFunction = True
-        functionID = [t[-1], 4, 0] # functionID = ('name', pila_arriba, pila_abajo)
+        nReturn += 1
+        functionID = [t[-1], 4, 0, nReturn] # functionID = ('name', pila_arriba, pila_abajo, idReturn)
         tabla[functionID[0]] = {}
         nodo = NodoFuncion()
         nodo.escribirPrologo(n_funcion = functionID[0])
@@ -787,9 +793,11 @@ class ClassParser(Parser):
 
     @_('RETURN operacion ";"')
     def devolver(self, t):
-        # no hay que hacer nada pq el resultado de la operacion se guarda 
-        # en eax y devolvemos lo que se enceuntra en %eax con ret 
-        pass
+        global nReturn
+        nodo = NodoSalto()
+        etiqueta = "return" + str(functionID[3])
+        nodo.escribirSalto(cad = etiqueta)
+
 
     # Esta regla se haria en el caso de que pongamos que una función pueda ser void
     #@_('')
@@ -836,10 +844,7 @@ class ClassParser(Parser):
         nodo.escribirParams(params = listaparams)
         listaparams = [] 
         nodo.escribir(cad = t.STR)
-        
-
-    ############################################################################
-    
+            
     
     @_('elm restoF')
     def paramlist(self, t):
@@ -902,9 +907,6 @@ class ClassParser(Parser):
         nParams += 1
         listaparams.append(t[-1])
     
-
-    
-        
 
     #---------------------------------------------------------------------------
 	# IfElse y While
@@ -1004,6 +1006,6 @@ if __name__ == "__main__":
         f_salida.close()
 
         agregarStrings(cad = cad)
-                
+        
         print("\n"+linea+CGREEN+"\n Traducción completada con éxito\n"+ CEND+linea)
         

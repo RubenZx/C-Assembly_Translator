@@ -2,11 +2,11 @@ int fact(int n)
 {
     int aux = 0;
     if (n <= 1){
-        aux = 1;
+        return 1;
     }else{
-        aux = n * fact(n-1);
+        return n * fact(n-1);
     }
-    return aux;
+
 }
 
 int numero;

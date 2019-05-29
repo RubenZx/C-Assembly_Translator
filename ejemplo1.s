@@ -27,14 +27,16 @@ fact:
 	jle lessEqual1
 	movl $(0), %eax
 	jmp fin_lessEqual1
+
 lessEqual1:
 	movl $(1), %eax
+
 fin_lessEqual1:
 	cmpl $0, %eax
 	je false1
 	
 	movl $(1), %eax
-	movl %eax, -4(%ebp)
+	jmp return1
 	jmp final1
 
 false1:
@@ -53,11 +55,11 @@ false1:
 	movl %eax, %ebx
 	popl %eax
 	imull %ebx, %eax
-	movl %eax, -4(%ebp)
+	jmp return1
 
 final1:
-	movl -4(%ebp), %eax
 
+return1:
 	# EPILOGO 
 	movl %ebp, %esp
 	popl %ebp
@@ -90,7 +92,9 @@ main:
 	call printf
 	addl $(8), %esp
 	movl $(0), %eax
+	jmp return2
 
+return2:
 	# EPILOGO 
 	movl %ebp, %esp
 	popl %ebp
