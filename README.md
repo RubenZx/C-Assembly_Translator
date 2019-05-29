@@ -2,7 +2,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;**Final work of the subject** *Language Processors*. 
 
 
-&nbsp;&nbsp;&nbsp;&nbsp;We are two students in the 3th grade of computer science at the University of Cádiz, @github/Luisdcelis and @github/RubenZx, and we are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/). 
+&nbsp;&nbsp;&nbsp;&nbsp;We are two students in the 3th grade of computer science at the University of Cádiz, [Luis de Celis Muñoz](https://github.com/luisdcelis) and [Rubén Montero Domínguez](https://github.com/RubenZx), and we are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/). 
 
 ### What does support
 - Just the *Integer* type
