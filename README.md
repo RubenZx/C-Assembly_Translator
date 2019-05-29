@@ -1,6 +1,11 @@
 # C-Assembly_Translator
 &nbsp;&nbsp;&nbsp;&nbsp;Final work of the subject *Language Processors*. We are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/).  
 
+### How to use:
+```
+python traductor.py mifichero.c
+```
+
 ## Grammar
 
 **entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia entrada 
