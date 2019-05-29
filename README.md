@@ -41,7 +41,7 @@ int main()
 ```
 
 Assembly code:
-```x86
+```assembly
 .section .rodata
 .LC0:
 	.string "Enter a number: "
