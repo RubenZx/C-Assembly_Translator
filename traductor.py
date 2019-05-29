@@ -1,21 +1,15 @@
 #-------------------------------------------------------------------------------
 # TRABAJO REALIZADO POR LUIS DE CELIS MUÑOZ Y RUBÉN MONTERO DOMÍNGUEZ
 #
-# En el main se encuentran las instrucciones de cómo ejecutar, asún así, está
-# listo para ejecutar con el 'ejemplo1.c' que hemos añadido en la entrega.
-# Nos faltan por implementar la operación Módulo,
-# en cuanto a tipos solo tenemos INT, y nos falta también poder realizar
+# En cuanto a tipos solo tenemos INT, y nos falta también poder realizar
 # funciones que no devuelvan nada (tipo void). Por lo demás creemos que está 
 # completo. 
-# 
-# También debemos añadir un par de cosas al main, para que sea mucho más cómodo
-# de utilizar nuestro traductor directamente desde la linea de comandos.
 #
 # En el siguiente enlace tenemos lo que hemos ido haciendo del trabajo y la
 # gramática escrita (la cual debemos actualizar a como la tenemos ahora mismo,
 # ya que hemos realizado cambios en ésta en este fichero pero no lo hemos 
 # reflejado en el markdown de nuestra gramática):
-
+#
 # https://github.com/RubenZx/C-Assembly_Translator
 #-------------------------------------------------------------------------------
 import sys
@@ -424,9 +418,6 @@ class ClassParser(Parser):
     def entradaInFunc(self, t):
         pass
 
-    @_('devolver entradaInFunc')
-    def entradaInFunc(self, t):
-        pass
 
     @_('')
     def entradaInFunc(self, t):
@@ -449,6 +440,10 @@ class ClassParser(Parser):
 
 
     @_('funcioncall')
+    def sentenciaInFunc(self, t):
+        pass
+
+    @_('devolver')
     def sentenciaInFunc(self, t):
         pass
 
@@ -828,9 +823,7 @@ class ClassParser(Parser):
         global callID
         callID = t[-1]
 
-    ############################################################################
-    # PRINTF y SCANF 
-    ############################################################################
+
     @_('PRINTF "(" STR restoF ")"')
     def funcioncall(self, t):
         nodo = NodoPrintf()
@@ -901,6 +894,7 @@ class ClassParser(Parser):
     def restoScan(self, t):
         pass
 
+
     @_('')
     def emptyRestoScan(self, t):
         global listaparams, nParams
@@ -912,11 +906,10 @@ class ClassParser(Parser):
 	# IfElse y While
     # En cuanto al IfElse y While, éstos solo se admiten con el cuerpo entre
     # llaves, nuestra gramática no admite que no se pongan llaves para traducir
-    #---------------------------------------------------------------------------       
+    #---------------------------------------------------------------------------              
     @_('IF "(" operacion ")" emptyJumpFalse "{" entradaInFunc "}"  funcionElse')
     def funcionIf(self, t):
         pass
-
 
     @_('emptyFalse ELSE "{" entradaInFunc "}"')
     def funcionElse(self, t):
@@ -938,6 +931,7 @@ class ClassParser(Parser):
         nodo = NodoSalto()
         nodo.escribirSalto(cad  = "final"+str(nIf))
         nodo.escribirEtiqueta(cad = "false"+str(nIf))
+
 
     @_('')
     def emptyJumpFalse(self, t):

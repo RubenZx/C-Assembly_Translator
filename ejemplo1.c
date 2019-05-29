@@ -3,9 +3,11 @@ int fact(int n)
     int aux = 0;
     if (n <= 1){
         return 1;
-    }else{
+    }
+    else{
         return n * fact(n-1);
     }
+    
 
 }
 
