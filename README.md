@@ -34,7 +34,7 @@ int main()
 {
     printf("Enter a number: ");
     scanf("%d", &numb);
-    printf("Factorial of %d = %d\n", numb, fact(numb));
+    printf("Factorial = %d\n", fact(numb));
    
     return 0;
 } 
