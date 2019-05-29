@@ -1005,6 +1005,5 @@ if __name__ == "__main__":
 
         agregarStrings(cad = cad)
                 
-
         print("\n"+linea+CGREEN+"\n Traducción completada con éxito\n"+ CEND+linea)
         
