@@ -9,7 +9,7 @@
 - *Assignment*, *arithmetic*, *relational* and *logical* expressions
 - *Printf* and *scanf* functions (with strings and parameters)
 - Senteces:
-    - *If* statement
+    - *If* statement 
     - *While* loop
     - *Compoud* statement
 - Function *calls* and *definition*
@@ -40,7 +40,7 @@ int main()
 } 
 ```
 
-Assembly code:
+Equivalent Assembly code:
 ```assembly
 .section .rodata
 .LC0:
