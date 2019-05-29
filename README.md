@@ -154,7 +154,7 @@ return2:
 	ret
 ```
 
-## Grammar
+### Our grammar
 
 **entrada**&nbsp;&nbsp;&nbsp;&nbsp;➞ sentencia entrada 
 
