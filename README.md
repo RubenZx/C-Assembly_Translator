@@ -21,6 +21,12 @@
 - More than one *operation* parameter in a function call (but, you can use as many *ID* and *NUM* as you want)
 - *Pointers* neither *vectors*
 
+### How to use
+&nbsp;&nbsp;&nbsp;&nbsp;You have to give as a parameter the name of the file in C that you want to translate, like this:
+```shell
+> python traductor.py myfile.c
+```
+
 ### Example
 C code:
 ```C
@@ -146,12 +152,6 @@ return2:
 	movl %ebp, %esp
 	popl %ebp
 	ret
-```
-
-### How to use:
-&nbsp;&nbsp;&nbsp;&nbsp;You have to give as a parameter the name of the file in C that you want to translate, like this:
-```
-> python traductor.py myfile.c
 ```
 
 ## Grammar
