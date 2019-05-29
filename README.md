@@ -1,8 +1,9 @@
 # C-Assembly_Translator
-&nbsp;&nbsp;&nbsp;&nbsp;Final work of the subject *Language Processors*. We are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/).  
+&nbsp;&nbsp;&nbsp;&nbsp;**Final work of the subject** *Language Processors*. 
+&nbsp;&nbsp;&nbsp;&nbsp;We are two students in the 3th grade of computer science at the University of Cádiz, [Luis de Celis Muñoz](https://github.com/Luisdcelis) and [Rubén Montero Domínguez](https://github.com/RubenZx), and we are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/). 
 
 ### How to use:
-You have to pass as a parameter the name of the file in C that you want to translate like this:
+&nbsp;&nbsp;&nbsp;&nbsp;You have to pass as a parameter the name of the file in C that you want to translate like this:
 ```
 > python traductor.py myfile.c
 ```
