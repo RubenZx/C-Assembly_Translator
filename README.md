@@ -4,16 +4,22 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;We are two students in the 3th grade of computer science at the University of Cádiz, @github/Luisdcelis and @github/RubenZx, and we are going to make a traductor to translate code in C to assembly in Python3 using [Sly (Lex Yacc)](https://sly.readthedocs.io/en/latest/). 
 
-### What does support?
-- The *Integer* type
+### What does support
+- Just the *Integer* type
 - *Assignment*, *arithmetic*, *relational* and *logical* expressions
 - *Printf* and *scanf* functions (with strings and parameters)
 - Senteces:
-    - *If* statement 
+    - *If-Else* statement 
     - *While* loop
     - *Compoud* statement
 - Function *calls* and *definition*
 - *Local* and *global* variables
+
+### What does not support
+- *Void* function
+- *if-else* statement and *while* loop without curly braces
+- More than one *operation* parameter in a function call (but, you can use as many *ID* and *NUM* as you want)
+- *Pointers* neither *vectors*
 
 ### Example
 C code:
