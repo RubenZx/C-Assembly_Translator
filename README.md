@@ -24,7 +24,7 @@
 ### How to use
 &nbsp;&nbsp;&nbsp;&nbsp;You have to give as a parameter the name of the file in C that you want to translate, like this:
 ```shell
-> python traductor.py myfile.c
+$ python traductor.py myfile.c
 ```
 
 ### Example
