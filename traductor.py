@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
-# TRABAJO REALIZADO POR LUIS DE CELIS MUÑOZ Y RUBÉN MONTERO DOMÍNGUEZ
+# AUTHORS: LUIS DE CELIS MUÑOZ AND RUBÉN MONTERO DOMÍNGUEZ
 #
 # In the following link, we have our work updated with some explanations, use
-# instructions and our grammar
+# instructions and our grammar.
 #
 # https://github.com/RubenZx/C-Assembly_Translator
 #-------------------------------------------------------------------------------
@@ -922,8 +922,8 @@ class ClassParser(Parser):
 
     #---------------------------------------------------------------------------
 	# IfElse y While
-    # En cuanto al IfElse y While, éstos solo se admiten con el cuerpo entre
-    # llaves, nuestra gramática no admite que no se pongan llaves para traducir
+    # Our gramma doesn't accept IfElse and While instructions without curly 
+    # braces
     #---------------------------------------------------------------------------              
     @_('IF "(" operacion ")" emptyJumpFalse "{" entradaInFunc "}"  funcionElse')
     def funcionIf(self, t):
